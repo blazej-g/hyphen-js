@@ -1,0 +1,41 @@
+{
+  "name": "hyphen-js",
+  "version": "0.0.6",
+  "description": "Hyphen Js - generic Angular App data layer",
+  "homepage": "",
+  "scripts": {
+    "test": "karma start karma.conf.js"
+  },
+  "author": "Blazej Grzelinski",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt-cli": ">= 0.1.7",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-bower": "*",
+    "grunt-bower-task": "*",
+    "grunt-karma": "latest",
+    "grunt-conventional-changelog": "0.0.12",
+    "grunt-zip": "*",
+    "angular": "^1.3.15",
+    "angular-mocks": "^1.4.8",
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-minify": "0.0.5",
+    "jasmine-core": "^2.3.4",
+    "karma": "^0.13.15",
+    "karma-chrome-launcher": "^0.2.1",
+    "karma-jasmine": "^0.3.6",
+    "underscore": "^1.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blazej-g/hyphen-js.git"
+  },
+  "keywords": [
+    "angular",
+    "datalayer",
+    "offline"
+  ]
+}
