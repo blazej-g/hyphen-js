@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - generic Angular App data layer
- * @version v0.0.5 - 2015-12-04 * @link 
+ * @version v0.0.6 - 2015-12-04 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */jsHyphen.factory("HyphenDataModel", function () {
