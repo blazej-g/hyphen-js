@@ -19,11 +19,12 @@ module.exports = function(config) {
       "node_modules/angular-mocks/angular-mocks.js",
       "node_modules/underscore/underscore.js",
 
+
       "src/js-hyphen.js",
       "src/js-hyphen-data-model.js",
       "src/js-hyphen-http.js",
       "src/js-hyphen-indexed-db.js",
-
+      "src/js-hyphen-synchronizer.js",
       "test/*.js"
     ],
 
