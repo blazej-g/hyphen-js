@@ -62,6 +62,19 @@ describe("Hyphen JS", function () {
         expect(Hyphen.Users.dataModel.getById).toBeDefined();
     }));
 
+    it("should api method return promise", function (done) {
+        inject(function (Hyphen) {
+            var users = [user, user2, user3];
+            setTimeout(function () {
+                var promise=Hyphen.Users.api.getAll.call();
+                $httpBackend.expectGET("/users").respond(200, users);
+                $httpBackend.flush();
+                expect(promise.toBeDefined);
+                done();
+            }, 100);
+        })
+    }, 200);
+
     it("should get all users", function (done) {
         inject(function (Hyphen) {
             var users = [user, user2, user3];
