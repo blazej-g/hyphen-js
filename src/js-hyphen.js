@@ -16,6 +16,12 @@ var jsHyphen = angular.module('jsHyphen', []);
             var hyphenConfiguration;
             var hyphenIndexDb;
             var stores = [];
+            var startEvent;
+
+            service.registerStartEvent = function (event) {
+                startEvent = event;
+            };
+
             service.initialize = function (configuration) {
                 var self = this;
                 hyphenConfiguration = configuration;
@@ -27,11 +33,14 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                 hyphenIndexDb = new HyphenIndexDb(configuration.dbName, configuration.dbVersion, stores);
                 HyphenIndexDb.upgradeEvent(function (event) {
+                    //HyphenIndexDb.clearStores(stores, stores);
+                    //return;
                     _(stores).each(function (st) {
+
                         if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
                             HyphenIndexDb.createStore(st.name, st.key);
                         } else {
-                            console.log("Store " + st + "already exist");
+                            console.log("Store " + st + "already exist and will be not creatd again");
                         }
                     })
                 });
@@ -46,7 +55,13 @@ var jsHyphen = angular.module('jsHyphen', []);
                     $q.all(readPromises).then(function (result) {
                         var syncQue = [];
                         _(result).each(function (dbData) {
-                            var entityModel = $injector.get(dbData.model);
+                            var entityModel;
+                            try {
+                                entityModel = $injector.get(dbData.model);
+                            } catch (e) {
+                                entityModel = $injector.get('DefaultModel');
+                            }
+
                             if (!entityModel.synchronize)
                                 throw Error("Not defined synchronise method for model " + dbData.store);
 
@@ -57,10 +72,15 @@ var jsHyphen = angular.module('jsHyphen', []);
                             _(event.target.result.objectStoreNames).each(function (store) {
                                 HyphenIndexDb.clear(store);
                             });
+                            if (startEvent)
+                                startEvent();
                             loadData();
                             console.log("Load data and start app");
                         });
-                        console.log("open");
+                    }, function(r){
+                        alert();
+                    }).catch(function(ex){
+                        console.log("ghgh");
                     });
                 });
 
@@ -132,7 +152,7 @@ var jsHyphen = angular.module('jsHyphen', []);
         HyphenDataStore.saveResult = function (data, store, options) {
             if (options.processResponse != false) {
                 if (options.responseHandler) {
-                    options.responseHandler(result, HyphenDataStore.prototype.stores);
+                    options.responseHandler(data, HyphenDataStore.prototype.stores);
 
                 } else {
                     if (options.method == "delete" || options.action == "delete") {
@@ -157,12 +177,22 @@ var jsHyphen = angular.module('jsHyphen', []);
         return HyphenDataStore;
     }]);
 
-    jsHyphen.factory('DefaultModel', [function () {
+    jsHyphen.factory('DefaultModel', ['$q', '$timeout',  function ($q, $timeout) {
         var DefaultModel = function (data) {
         }
 
         DefaultModel.key = "_id";
         DefaultModel.indexes = [{name: "Id", key: "id"}, {name: "_Id", key: "_id"}];
+
+        DefaultModel.synchronize = function(){
+            var def= $q.defer();
+            $timeout(function(){
+                def.resolve("data resolvedd");
+            }, 100);
+
+            return def.promise;
+        }
+
         return DefaultModel;
 
     }]);
@@ -183,7 +213,6 @@ var jsHyphen = angular.module('jsHyphen', []);
             this.api = {};
 
             var apiCallFactory = new ApiCallFactory();
-            console.log(promises);
             var promises = [];
             _(modelData.rest).each(function (rest) {
                 var self = this;

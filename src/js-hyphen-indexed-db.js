@@ -206,7 +206,7 @@ jsHyphen.factory("HyphenIndexDb", ['IndexedDbCommands', function (IndexedDbComma
         return indexedDb.openDataBase(version);
     }
 
-    HyphenIndexDb.clearAllStores = function (stores, realStores) {
+    HyphenIndexDb.clearStores = function (stores, realStores) {
         return indexedDb.clearStores(stores, realStores);
     }
 
