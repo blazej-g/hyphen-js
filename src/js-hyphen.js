@@ -46,6 +46,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                 });
 
                 HyphenIndexDb.openEvent(function (event) {
+                    HyphenIndexDb.initialized=true;
                     var readPromises = [];
                     _(event.target.result.objectStoreNames).each(function (store) {
                         var indexReadPromise = HyphenIndexDb.getStoreData(store);
@@ -132,8 +133,11 @@ var jsHyphen = angular.module('jsHyphen', []);
             }
 
             service.enqueue = function (enqueueList) {
+                listOfenqueueList=[];
                 self.defer = $q.defer();
                 listOfenqueueList.push(enqueueList);
+                if(HyphenIndexDb.initialized)
+                    loadData();
                 return self.defer.promise;
             }
 
