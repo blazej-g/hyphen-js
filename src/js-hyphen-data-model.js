@@ -85,6 +85,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
                 if (!navigator.onLine || window.hjom)
                     record.action = "added";
 
+                record = _.extend(new self.model(record), record);
                 self.data.push(record);
                 HyphenIndexDb.addRecordToStore(record, self.modelName);
             }

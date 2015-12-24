@@ -80,7 +80,9 @@ var jsHyphen = angular.module('jsHyphen', []);
 
             };
 
-           // var synchronize
+            var promiseQueChain = function(){
+
+            }
 
             window.addEventListener('online', function () {
                 var stores = HyphenIndexDb.getStores();
