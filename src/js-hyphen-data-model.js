@@ -1,5 +1,5 @@
 jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
-    var HyphenDataModel = function (model, name, indexedDB) {
+    var HyphenDataModel = function (model, name) {
         this.model = model;
         this.modelName = name;
         this.data = [];
@@ -31,45 +31,35 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
         })
     }
 
-    HyphenDataModel.prototype.removeDataOnline = function (data) {
+    HyphenDataModel.prototype.remove = function (data) {
         var self = this;
         var key = this.model.key;
         var data = Array.isArray(data) ? data : [data];
         _(data).each(function (record) {
-            HyphenIndexDb.deleteRecord(self.modelName, record[key]);
-
-            var id = (record && record[key]) ? record[key] : record;
-            this.data = _(this.data).filter(function (element) {
-                return element[key] != id;
-            });
+            if (navigator.onLine && !window.hjom) {
+                HyphenIndexDb.deleteRecord(self.modelName, record[key]);
+                var id = (record && record[key]) ? record[key] : record;
+                this.data = _(this.data).filter(function (element) {
+                    return element[key] != id;
+                });
+            } else {
+                record.deleted = true;
+                HyphenIndexDb.updateRecordStore(record, self.modelName, record[key]);
+                var id = (record && record[key]) ? record[key] : record;
+                this.data = _(this.data).map(function (element) {
+                    if (element[key] == id) {
+                        element.action = "deleted";
+                    }
+                    return element;
+                });
+            }
         }, this);
+
         clearIndexes.call(this);
 
-        //this.indexedDB.removeStoreRecord(this.modelName, data);
     };
 
-    HyphenDataModel.prototype.removeDataOffline = function (data) {
-        var self = this;
-        var key = this.model.key;
-        var data = Array.isArray(data) ? data : [data];
-        _(data).each(function (record) {
-            record.deleted = true;
-            HyphenIndexDb.updateRecordStore(record, self.modelName, record[key]);
-
-            var id = (record && record[key]) ? record[key] : record;
-            this.data = _(this.data).map(function (element) {
-                if (element[key] == id) {
-                    element.deleted = true;
-                }
-                return element;
-            });
-        }, this);
-        clearIndexes.call(this);
-
-        //this.indexedDB.removeStoreRecord(this.modelName, data);
-    };
-
-    HyphenDataModel.prototype.addData = function (data) {
+    HyphenDataModel.prototype.add = function (data) {
         var self = this;
         data = JSON.parse(JSON.stringify(data));
         var key = this.model.key;
@@ -77,26 +67,38 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
 
         _(data).each(function (record) {
             var index;
+            if (!record[key])
+                throw new Error("Key is not defined for '" + self.modelName + "', record cannot be added");
+
             var existEl = _(self.data).find(function (el, ind) {
                 index = ind;
                 return el[key] == record[key];
             });
 
             if (existEl) {
+                if (!navigator.onLine || window.hjom)
+                    record.action = "updated";
+                self.data[index] = record;
+
                 HyphenIndexDb.updateRecordStore(record, self.modelName, record[key]);
             } else {
+                if (!navigator.onLine || window.hjom)
+                    record.action = "added";
+
+                self.data.push(record);
                 HyphenIndexDb.addRecordToStore(record, self.modelName);
             }
         });
 
-        this.data = _(data).chain().map(function (val) {
-            //extend given objects
-            return _.extend(new this.model(val), val);
-        }, this).
-        concat(this.data).uniq(false, function (element) {
-            return element[key];
-        }).value();
-
+        /*
+         this.data = _(data).chain().map(function (val) {
+         //extend given objects
+         return _.extend(new this.model(val), val);
+         }, this).
+         concat(this.data).uniq(false, function (element) {
+         return element[key];
+         }).value();
+         */
         clearIndexes.call(this);
     };
 

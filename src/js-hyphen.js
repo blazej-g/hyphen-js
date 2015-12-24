@@ -16,11 +16,6 @@ var jsHyphen = angular.module('jsHyphen', []);
             var hyphenConfiguration;
             var hyphenIndexDb;
             var stores = [];
-            var startEvent;
-
-            service.registerStartEvent = function (event) {
-                startEvent = event;
-            };
 
             service.initialize = function (configuration) {
                 var self = this;
@@ -40,13 +35,13 @@ var jsHyphen = angular.module('jsHyphen', []);
                         if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
                             HyphenIndexDb.createStore(st.name, st.key);
                         } else {
-                            console.log("Store " + st + "already exist and will be not creatd again");
+                            console.log("Store " + st + "already exist and will be not created again");
                         }
                     })
                 });
 
                 HyphenIndexDb.openEvent(function (event) {
-                    HyphenIndexDb.initialized=true;
+                    HyphenIndexDb.initialized = true;
                     var readPromises = [];
                     _(event.target.result.objectStoreNames).each(function (store) {
                         var indexReadPromise = HyphenIndexDb.getStoreData(store);
@@ -73,19 +68,19 @@ var jsHyphen = angular.module('jsHyphen', []);
                             _(event.target.result.objectStoreNames).each(function (store) {
                                 HyphenIndexDb.clear(store);
                             });
-                            if (startEvent)
-                                startEvent();
                             loadData();
                             console.log("Load data and start app");
                         });
-                    }, function(r){
+                    }, function (r) {
                         alert();
-                    }).catch(function(ex){
+                    }).catch(function (ex) {
                         console.log("ghgh");
                     });
                 });
 
             };
+
+           // var synchronize
 
             window.addEventListener('online', function () {
                 var stores = HyphenIndexDb.getStores();
@@ -133,10 +128,10 @@ var jsHyphen = angular.module('jsHyphen', []);
             }
 
             service.enqueue = function (enqueueList) {
-                listOfenqueueList=[];
+                listOfenqueueList = [];
                 self.defer = $q.defer();
                 listOfenqueueList.push(enqueueList);
-                if(HyphenIndexDb.initialized)
+                if (HyphenIndexDb.initialized)
                     loadData();
                 return self.defer.promise;
             }
@@ -151,7 +146,20 @@ var jsHyphen = angular.module('jsHyphen', []);
             HyphenDataStore.prototype.stores[store] = new HyphenDataModel(entityModel, store);
         }
 
-        HyphenDataStore.prototype.stores = {};
+        HyphenDataStore.prototype.stores = {}
+        HyphenDataStore.actions = {};
+
+        HyphenDataStore.actions.delete = function (data, store, options) {
+            HyphenDataStore.prototype.stores[store].removeDataOnline(data);
+        }
+
+        HyphenDataStore.actions.save = function (data, store, options) {
+            HyphenDataStore.prototype.stores[store].addData(data);
+        }
+
+        HyphenDataStore.actions.custom = function (data, store, options) {
+            options.responseHandler(data, HyphenDataStore.actions);
+        }
 
         HyphenDataStore.saveResult = function (data, store, options) {
             if (options.processResponse != false) {
@@ -160,15 +168,10 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                 } else {
                     if (options.method == "delete" || options.action == "delete") {
-                        if (navigator.onLine && !window.hjom) {
-                            HyphenDataStore.prototype.stores[store].removeDataOnline(data);
-                        }
-                        else {
-                            HyphenDataStore.prototype.stores[store].removeDataOffline(data);
-                        }
+                        HyphenDataStore.prototype.stores[store].remove(data);
                     }
                     else {
-                        HyphenDataStore.prototype.stores[store].addData(data);
+                        HyphenDataStore.prototype.stores[store].add(data);
                     }
                 }
             }
@@ -181,16 +184,16 @@ var jsHyphen = angular.module('jsHyphen', []);
         return HyphenDataStore;
     }]);
 
-    jsHyphen.factory('DefaultModel', ['$q', '$timeout',  function ($q, $timeout) {
+    jsHyphen.factory('DefaultModel', ['$q', '$timeout', function ($q, $timeout) {
         var DefaultModel = function (data) {
         }
 
         DefaultModel.key = "_id";
         DefaultModel.indexes = [{name: "Id", key: "id"}, {name: "_Id", key: "_id"}];
 
-        DefaultModel.synchronize = function(){
-            var def= $q.defer();
-            $timeout(function(){
+        DefaultModel.synchronize = function () {
+            var def = $q.defer();
+            $timeout(function () {
                 def.resolve("data resolvedd");
             }, 100);
 
@@ -204,13 +207,13 @@ var jsHyphen = angular.module('jsHyphen', []);
     jsHyphen.factory("BasicModel", ['ApiCallFactory', 'HyphenDataStore', '$injector', 'HyphenSynchronizer', '$q', function (ApiCallFactory, HyphenDataStore, $injector, HyphenSynchronizer, $q) {
         var promises = [];
         var BasicModel = function (modelData, configuration) {
-            var entityModel = null;
+            this.entityModel = null;
             try {
-                entityModel = $injector.get(modelData.model);
+                this.entityModel = $injector.get(modelData.model);
             } catch (e) {
-                entityModel = $injector.get('DefaultModel');
+                this.entityModel = $injector.get('DefaultModel');
             }
-            var dataStore = new HyphenDataStore(modelData.model, entityModel);
+            var dataStore = new HyphenDataStore(modelData.model, this.entityModel);
 
             //entities public properties
             this.dataModel = dataStore.stores[modelData.model];
@@ -225,15 +228,24 @@ var jsHyphen = angular.module('jsHyphen', []);
                 self.api[rest.name].loading = false;
 
                 this.api[rest.name].call = function (params) {
-                    apiCall.dataSet = self.api[rest.name].data;
-                    var promise = apiCall.invoke.call(apiCall, params);
-                    self.api[rest.name].loading = true;
-                    promise.then(function (result) {
-                        self.api[rest.name].loading = false;
-                        HyphenDataStore.saveResult(result.data, modelData.model, rest);
-                    }, function () {
-                        self.api[rest.name].loading = false;
-                    });
+                    if (navigator.onLine && !window.hjom) {
+                        apiCall.dataSet = self.api[rest.name].data;
+                        var promise = apiCall.invoke.call(apiCall, params);
+                        self.api[rest.name].loading = true;
+                        promise.then(function (result) {
+                            self.api[rest.name].loading = false;
+                            HyphenDataStore.saveResult(result.data, modelData.model, rest);
+                        }, function () {
+                            self.api[rest.name].loading = false;
+                        });
+                    } else {
+                        if (self.entityModel[rest.name + "Offline"]) {
+                            self.entityModel[rest.name + "Offline"](params, self.api[rest.name].data, HyphenDataStore.prototype.stores);
+                        } else {
+                            throw new Error("No offline method: " + modelData.model + "." + rest.name + "Offline");
+                        }
+
+                    }
 
                     promises.push(promise);
                     $q.all(promises);
