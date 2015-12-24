@@ -13,9 +13,9 @@ var dataModel = [
             {name: "removeAll", url: "users/remove_all", method: "post", action: "delete"},
             {name: "getUserProjects", url: "users/user_projects", method: "get", responseHandler: function(data, hyphenModels){
                 var projects= data.projects;
-                hyphenModels.Projects.addData(projects);
+                hyphenModels.Projects.add(projects);
                 delete data.projects;
-                hyphenModels.Users.addData(data);
+                hyphenModels.Users.add(data);
             }},
         ],
     },
