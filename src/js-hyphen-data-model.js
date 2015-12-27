@@ -27,7 +27,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
 
     HyphenDataModel.prototype.getData = function () {
         return _(this.data).filter(function (el) {
-            return !el.deleted;
+            return el.action!="deleted";
         })
     }
 
@@ -36,14 +36,14 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
         var key = this.model.key;
         var data = Array.isArray(data) ? data : [data];
         _(data).each(function (record) {
-            if (navigator.onLine && !window.hjom) {
+            if ((navigator.onLine && !window.hjom) || record.action=="new") {
                 HyphenIndexDb.deleteRecord(self.modelName, record[key]);
                 var id = (record && record[key]) ? record[key] : record;
                 this.data = _(this.data).filter(function (element) {
                     return element[key] != id;
                 });
             } else {
-                record.deleted = true;
+                record.action = "deleted";
                 HyphenIndexDb.updateRecordStore(record, self.modelName, record[key]);
                 var id = (record && record[key]) ? record[key] : record;
                 this.data = _(this.data).map(function (element) {
@@ -77,13 +77,14 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
 
             if (existEl) {
                 if (!navigator.onLine || window.hjom)
-                    record.action = "updated";
-                self.data[index] = record;
+                    if (record.action != "new")
+                        record.action = "updated";
+                self.data[index] = _.extend(new self.model(record), record);;
 
                 HyphenIndexDb.updateRecordStore(record, self.modelName, record[key]);
             } else {
                 if (!navigator.onLine || window.hjom)
-                    record.action = "added";
+                    record.action = "new";
 
                 record = _.extend(new self.model(record), record);
                 self.data.push(record);

@@ -170,7 +170,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
 
     }
 
-    IndexedDbCommands.prototype.getStoreData = function (store) {
+    IndexedDbCommands.prototype.getStoreData = function (store, priority) {
         var transaction = this.db.transaction(store, "readwrite");
         var dbStore = transaction.objectStore(store);
         var request = dbStore.openCursor();
@@ -182,7 +182,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
                 data.push(cursor.value);
                 cursor.continue();
             } else {
-                deferred.resolve({model: store, data: data});
+                deferred.resolve({model: store, data: data, priority: priority});
             }
         }
         request.onerror = function (event) {
@@ -210,8 +210,8 @@ jsHyphen.factory("HyphenIndexDb", ['IndexedDbCommands', function (IndexedDbComma
         return indexedDb.clearStores(stores, realStores);
     }
 
-    HyphenIndexDb.getStoreData = function (store) {
-        return indexedDb.getStoreData(store);
+    HyphenIndexDb.getStoreData = function (store, priority) {
+        return indexedDb.getStoreData(store, priority);
     }
 
     HyphenIndexDb.createStores = function (stores) {

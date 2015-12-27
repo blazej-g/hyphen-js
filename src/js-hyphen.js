@@ -23,15 +23,12 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                 configuration.model.forEach(function (entity) {
                     service[entity.model] = new BasicModel(entity, configuration);
-                    stores.push({name: entity.model, key: entity.key});
+                    stores.push({name: entity.model, key: entity.key, priority: entity.priority});
                 });
 
                 hyphenIndexDb = new HyphenIndexDb(configuration.dbName, configuration.dbVersion, stores);
                 HyphenIndexDb.upgradeEvent(function (event) {
-                    //HyphenIndexDb.clearStores(stores, stores);
-                    //return;
                     _(stores).each(function (st) {
-
                         if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
                             HyphenIndexDb.createStore(st.name, st.key);
                         } else {
@@ -41,78 +38,115 @@ var jsHyphen = angular.module('jsHyphen', []);
                 });
 
                 HyphenIndexDb.openEvent(function (event) {
+                    // var db_stores = event.target.result.objectStoreNames
                     HyphenIndexDb.initialized = true;
-                    var readPromises = [];
-                    _(event.target.result.objectStoreNames).each(function (store) {
-                        var indexReadPromise = HyphenIndexDb.getStoreData(store);
-                        readPromises.push(indexReadPromise);
-                    });
-
-                    $q.all(readPromises).then(function (result) {
-                        var syncQue = [];
-                        _(result).each(function (dbData) {
-                            var entityModel;
-                            try {
-                                entityModel = $injector.get(dbData.model);
-                            } catch (e) {
-                                entityModel = $injector.get('DefaultModel');
-                            }
-
-                            if (!entityModel.synchronize)
-                                throw Error("Not defined synchronise method for model " + dbData.store);
-
-                            syncQue.push(entityModel.synchronize(dbData.data));
-                        })
-
-                        $q.all(syncQue).then(function (result) {
-                            _(event.target.result.objectStoreNames).each(function (store) {
-                                HyphenIndexDb.clear(store);
-                            });
-                            loadData();
-                            console.log("Load data and start app");
+                    var prom = readFromIndexDb(stores);
+                    prom.then(function (data) {
+                        _(stores).each(function (store) {
+                            HyphenIndexDb.clear(store.name);
                         });
-                    }, function (r) {
-                        alert();
-                    }).catch(function (ex) {
-                        console.log("ghgh");
-                    });
-                });
+                        loadData();
+                        console.log("Load data and start app");
+                    }, function (reason) {
 
+                    });
+
+                });
             };
 
-            var promiseQueChain = function(){
-
-            }
-
             window.addEventListener('online', function () {
-                var stores = HyphenIndexDb.getStores();
+                HyphenIndexDb.getStores();
+                readFromIndexDb(stores);
+            });
+
+            window.addEventListener('offline', function () {
+                console.log("is offline");
+            });
+
+            var syncModelsPromise;
+            var readFromIndexDb = function (dbStores) {
+                syncModelsPromise = $q.defer();
                 var readPromises = [];
-                _(stores).each(function (store) {
-                    var indexReadPromise = HyphenIndexDb.getStoreData(store);
+                _(dbStores).each(function (store) {
+                    var indexReadPromise = HyphenIndexDb.getStoreData(store.name, store.priority);
                     readPromises.push(indexReadPromise);
                 });
 
                 $q.all(readPromises).then(function (result) {
                     var syncQue = [];
                     _(result).each(function (dbData) {
-                        var entityModel = $injector.get(dbData.model);
-                        if (!entityModel.synchronize)
-                            throw Error("Not defined synchronise method for model " + dbData.store);
+                        var entityModel;
+                        try {
+                            entityModel = $injector.get(dbData.model);
+                        } catch (e) {
+                            entityModel = $injector.get('DefaultModel');
+                        }
 
-                        syncQue.push(entityModel.synchronize(dbData.data));
-                    });
+                        if (!entityModel.syncNew)
+                            throw Error("Not defined synchronise method for 'syncNew' for model " + dbData.model);
 
-                    $q.all(syncQue).then(function (result) {
-                        console.log("Sync finished");
+                        if (!entityModel.syncUpdated)
+                            throw Error("Not defined synchronise method for 'syncUpdated' for model " + dbData.model);
+
+                        if (!entityModel.syncDeleted)
+                            throw Error("Not defined synchronise method for 'syncDeleted' for model " + dbData.model);
+
+                        var newData = [];
+                        var updateData = [];
+                        var deleteData = [];
+
+                        _(dbData.data).each(function (record) {
+                            if (record.action == "new") {
+                                newData.push(record);
+                            }
+                            if (record.action == "updated") {
+                                updateData.push(record);
+                            }
+
+                            if (record.action == "deleted") {
+                                deleteData.push(record);
+                            }
+                        });
+                        syncQue.push({
+                            syncNew: entityModel.syncNew,
+                            syncUpdated: entityModel.syncUpdated,
+                            syncDeleted: entityModel.syncDeleted,
+                            newData: newData,
+                            updateData: updateData,
+                            deleteData: deleteData,
+                            priority: dbData.priority
+                        });
+                    })
+
+                    syncQue = _(syncQue).sortBy(function (d) {
+                        return d.priority;
                     });
-                    console.log("open");
+                    promiseQueChain(syncQue);
+
+                }, function (r) {
+                    console.log("cannot read from db");
                 });
-                console.log("Is online");
-            });
 
-            window.addEventListener('offline', function () {
-                console.log("is offline");
-            });
+                return syncModelsPromise.promise;
+            }
+
+            var promiseQueChain = function (promisesList) {
+                var item = promisesList[0];
+                if (item) {
+                    var syncNewPromise = item.syncNew(item.newData);
+                    var syncUpdatedPromise = item.syncUpdated(item.updateData);
+                    var syncDeleted = item.syncDeleted(item.deleteData);
+
+                    $q.all([syncNewPromise, syncUpdatedPromise, syncDeleted]).then(function () {
+                        promisesList.shift();
+                        promiseQueChain(promisesList);
+                    }, function (reason) {
+                        syncModelsPromise.reject(reason);
+                    })
+                } else {
+                    syncModelsPromise.resolve();
+                }
+            }
 
             var loadData = function () {
                 _(listOfenqueueList).each(function (enqueueList) {
