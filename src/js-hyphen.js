@@ -23,7 +23,7 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                 configuration.model.forEach(function (entity) {
                     service[entity.model] = new BasicModel(entity, configuration);
-                    stores.push({name: entity.model, key: entity.key, priority: entity.priority});
+                    stores.push({name: entity.model, key: entity.key, priority: entity.priority, sync: entity.sync});
                 });
 
                 hyphenIndexDb = new HyphenIndexDb(configuration.dbName, configuration.dbVersion, stores);
@@ -68,7 +68,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                 syncModelsPromise = $q.defer();
                 var readPromises = [];
                 _(dbStores).each(function (store) {
-                    var indexReadPromise = HyphenIndexDb.getStoreData(store.name, store.priority);
+                    var indexReadPromise = HyphenIndexDb.getStoreData(store.name, store.priority, store.sync);
                     readPromises.push(indexReadPromise);
                 });
 
@@ -107,15 +107,17 @@ var jsHyphen = angular.module('jsHyphen', []);
                                 deleteData.push(record);
                             }
                         });
-                        syncQue.push({
-                            syncNew: entityModel.syncNew,
-                            syncUpdated: entityModel.syncUpdated,
-                            syncDeleted: entityModel.syncDeleted,
-                            newData: newData,
-                            updateData: updateData,
-                            deleteData: deleteData,
-                            priority: dbData.priority
-                        });
+                        if(dbData.sync) {
+                            syncQue.push({
+                                syncNew: entityModel.syncNew,
+                                syncUpdated: entityModel.syncUpdated,
+                                syncDeleted: entityModel.syncDeleted,
+                                newData: newData,
+                                updateData: updateData,
+                                deleteData: deleteData,
+                                priority: dbData.priority
+                            });
+                        }
                     })
 
                     syncQue = _(syncQue).sortBy(function (d) {
