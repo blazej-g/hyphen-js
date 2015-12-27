@@ -16,6 +16,14 @@ var jsHyphen = angular.module('jsHyphen', []);
             var hyphenConfiguration;
             var hyphenIndexDb;
             var stores = [];
+            var syncStart, syncEnd;
+
+            service.syncStartEvent = function (fun) {
+                syncStart = fun;
+            };
+            service.syncEndEvent = function (fun) {
+                syncEnd = fun;
+            }
 
             service.initialize = function (configuration) {
                 var self = this;
@@ -65,6 +73,9 @@ var jsHyphen = angular.module('jsHyphen', []);
 
             var syncModelsPromise;
             var readFromIndexDb = function (dbStores) {
+                if (syncStart)
+                    syncStart();
+
                 syncModelsPromise = $q.defer();
                 var readPromises = [];
                 _(dbStores).each(function (store) {
@@ -107,7 +118,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                                 deleteData.push(record);
                             }
                         });
-                        if(dbData.sync) {
+                        if (dbData.sync) {
                             syncQue.push({
                                 syncNew: entityModel.syncNew,
                                 syncUpdated: entityModel.syncUpdated,
@@ -143,9 +154,12 @@ var jsHyphen = angular.module('jsHyphen', []);
                         promisesList.shift();
                         promiseQueChain(promisesList);
                     }, function (reason) {
+                        syncEnd(reason);
                         syncModelsPromise.reject(reason);
                     })
                 } else {
+                    if (syncEnd)
+                        syncEnd();
                     syncModelsPromise.resolve();
                 }
             }
