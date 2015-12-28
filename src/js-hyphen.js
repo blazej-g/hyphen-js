@@ -12,7 +12,7 @@ var jsHyphen = angular.module('jsHyphen', []);
         }
         provider.$get = ['$http', '$q', 'HyphenIndexDb', 'ModelsAbstractFactory', 'BasicModel', 'HyphenIndexDb', '$injector', function ($http, $q, HyphenIndexDb, ModelsAbstractFactory, BasicModel, HyphenIndexDb, $injector) {
             var service = {};
-            var listOfenqueueList = [];
+            var enqueuedActionsList = [];
             var hyphenConfiguration;
             var hyphenIndexDb;
             var stores = [];
@@ -165,24 +165,21 @@ var jsHyphen = angular.module('jsHyphen', []);
             }
 
             var loadData = function () {
-                _(listOfenqueueList).each(function (enqueueList) {
-                    _(enqueueList).each(function (data) {
-                        var method = data.method;
-                        var params = data.params;
-                        method.data = data.data;
-                        method.call(params).then(function (data) {
-                            self.defer.resolve(data);
-                        }, function (reason) {
-                            self.defer.reject(reason);
-                        });
+                _(enqueuedActionsList).each(function (data) {
+                    var method = data.method;
+                    var params = data.params;
+                    method.data = data.data;
+                    method.call(params).then(function (data) {
+                        self.defer.resolve(data);
+                    }, function (reason) {
+                        self.defer.reject(reason);
                     });
-                })
+                });
             }
 
             service.enqueue = function (enqueueList) {
-                listOfenqueueList = [];
+                enqueuedActionsList = enqueueList;
                 self.defer = $q.defer();
-                listOfenqueueList.push(enqueueList);
                 if (HyphenIndexDb.initialized)
                     loadData();
                 return self.defer.promise;
