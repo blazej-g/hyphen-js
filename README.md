@@ -6,7 +6,7 @@ full support for offline mode and data synchronization. Thanks to HyphenJs devel
 of code application which can communicate with server using api queries when browser is in online mode and store the data in index db when in offline mode to be able to synchronize
 all the offline data when browser return to online mode.
 
-**Basic live demo, [live demo deployed to heroku](https://hyphen-js.herokuapp.com/#/users).**
+**Basic live demo, [live demo deployed to heroku](https://hyphen-js.herokuapp.com/#/sign_in).**
 Demo code [deployed to git hub](https://github.com/blazej-g/hyphen-js-example)
 
 #Table of contents
