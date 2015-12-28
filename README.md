@@ -7,6 +7,9 @@ Thanks to HyphenJs developer can create with minimum amount of code application 
  - communicate with server (send, recieve data) using api queries when browser is in online mode
  - store all changes (new, updated or deleted records) in the IndexedDB when browser is in offline mode
  - synchronize all the changes from offline mode with the server when browser return to online mode.
+ 
+
+With HyphenJs Angular application is working in offline without any difference in comparision to online mode, developer do not need to handle in the controllers any state and all the REST api methods can be used in completly transpaent way.
 
 **Basic live demo, [live demo deployed to heroku](https://hyphen-js.herokuapp.com/#/sign_in).**
 Demo code [deployed to git hub](https://github.com/blazej-g/hyphen-js-example)
