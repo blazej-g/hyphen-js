@@ -31,7 +31,7 @@ module.exports = function(grunt) {
                 banner: '<%= meta.banner %>'
             },
             dist: {
-                src: ['src/*.js'],
+                src: ['src/js-hyphen.js', 'src/js-hyphen-indexed-db.js', 'src/js-hyphen-data-model.js', 'src/js-hyphen-http.js', 'src/js-hyphen-synchronizer.js'],
                 dest: '<%= dirs.dest %>/<%= pkg.name %>.js'
             }
         },
