@@ -6,11 +6,7 @@ describe("Hyphen JS", function () {
 
     //beforeEach(function (done) {
     beforeEach(inject(function ($injector, Hyphen) {
-
         Hyphen.initialize(configuration);
-
-        Hyphen.enqueue([]);
-
         $httpBackend = $injector.get('$httpBackend');
     }));
 
@@ -61,6 +57,18 @@ describe("Hyphen JS", function () {
     it('should be defined Users index "Id"', inject(function (Hyphen) {
         expect(Hyphen.Users.dataModel.getById).toBeDefined();
     }));
+
+    it('should load all Users using api call and store them in the Users array', inject(function (Hyphen) {
+        var users = [user, user2, user3];
+        $httpBackend.expectGET("/users").respond(200, users)
+        Hyphen.Users.api.getAll.call();
+        $httpBackend.flush();
+
+        expect(Hyphen.Users.dataModel.getById(1)._id).toBe(1);
+        expect(Hyphen.Users.dataModel.getById(2).user_first_name).toBe("Mike");
+        expect(Hyphen.Users.dataModel.getData().length).toBe(users.length);
+    }));
+
 
     it("should api method return promise", function (done) {
         inject(function (Hyphen) {

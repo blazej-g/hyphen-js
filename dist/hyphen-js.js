@@ -1,6 +1,6 @@
 /**
- * Hyphen Js - generic Angular App data layer
- * @version v0.0.95 - 2016-01-11 * @link 
+ * Hyphen Js - Angular application data layer
+ * @version v0.0.122 - 2016-01-16 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -14,232 +14,250 @@
         var provider = {};
         provider.initialize = function () {
 
-        }
-        provider.$get = ['$http', '$q', 'HyphenIndexDb', 'BasicModel', 'HyphenIndexDb', '$injector', '$timeout', 'CacheService', function ($http, $q, HyphenIndexDb, BasicModel, HyphenIndexDb, $injector, $timeout, CacheService) {
-            var service = {};
-            var enqueuedActionsList = [];
-            var hyphenConfiguration;
-            var hyphenIndexDb;
-            var stores = [];
-            var syncStart, syncEnd;
+        };
+        provider.$get = ['$http', '$q', 'BasicModel', 'HyphenIndexDb', '$injector', '$timeout', 'CacheService',
+            function ($http, $q, BasicModel, HyphenIndexDb, $injector, $timeout, CacheService) {
+                var service = {};
+                var enqueuedActionsList = [];
+                var hyphenConfiguration;
+                var hyphenIndexDb;
+                var stores = [];
+                var syncStart, syncEnd;
 
-            service.syncStartEvent = function (fun) {
-                syncStart = fun;
-            };
-            service.syncEndEvent = function (fun) {
-                syncEnd = fun;
-            }
+                service.syncStartEvent = function (fun) {
+                    syncStart = fun;
+                };
+                service.syncEndEvent = function (fun) {
+                    syncEnd = fun;
+                };
 
-            service.initialize = function (configuration) {
-                var self = this;
-                this.configuration = configuration;
-                hyphenConfiguration = configuration;
+                service.initialize = function (configuration) {
+                    var self = this;
+                    this.configuration = configuration;
+                    hyphenConfiguration = configuration;
 
-                configuration.model.forEach(function (entity) {
-                    service[entity.model] = new BasicModel(entity, configuration);
-                    stores.push({name: entity.model, key: entity.key, priority: entity.priority, sync: entity.sync});
-                });
-            };
-
-            service.dispose = function () {
-                CacheService.clearCache();
-                HyphenIndexDb.closeDb();
-            };
-
-            service.initializeDb = function (identifier) {
-                if (!identifier)
-                    throw new Error("Db identifier not provided for initializeDb function")
-                if (!HyphenIndexDb.isInitialized()) {
-                    var dbName = this.configuration.dbName + identifier;
-                    hyphenIndexDb = new HyphenIndexDb(dbName, this.configuration.dbVersion, stores, identifier);
-                    HyphenIndexDb.upgradeEvent(function (event) {
-                        _(stores).each(function (st) {
-                            if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
-                                HyphenIndexDb.createStore(st.name, st.key);
-                            } else {
-                                console.log("Store " + st + "already exist and will be not created again");
-                            }
-                        })
-                    });
-
-                    HyphenIndexDb.openEvent(function (event) {
-
-                        var prom = readFromIndexDb(stores);
-                        prom.then(function (data) {
-                            _(stores).each(function (store) {
-                                HyphenIndexDb.clear(store.name);
-                            });
-
-                            HyphenIndexDb.initialized = true;
-                            loadData();
-                            console.log("Load data and start app");
-                        }, function (reason) {
-                            //clear stores even when sync fail
-                            _(stores).each(function (store) {
-                                HyphenIndexDb.clear(store.name);
-                            });
-                            console.log(reason);
-                        });
-
-                    });
-                } else {
-                    console.log("db already initialized");
-                }
-            }
-
-            window.addEventListener('online', function () {
-                if (hyphenIndexDb) {
-                    $timeout(function () {
-                        var prom = readFromIndexDb(stores);
-                        prom.then(function (data) {
-                            _(stores).each(function (store) {
-                                HyphenIndexDb.clear(store.name);
-                            });
-                            console.log("synchronize");
-                        }, function (reason) {
-                            console.log(reason);
-                        });
-                    }, 5000);
-                }
-            });
-
-            window.addEventListener('offline', function () {
-                console.log("is offline");
-            });
-
-            var syncModelsPromise;
-            var dataToSync = [];
-            var readFromIndexDb = function (dbStores) {
-                syncModelsPromise = $q.defer();
-                var readPromises = [];
-                _(dbStores).each(function (store) {
-                    var indexReadPromise = HyphenIndexDb.getStoreData(store.name, store.priority, store.sync);
-                    readPromises.push(indexReadPromise);
-                });
-
-                $q.all(readPromises).then(function (result) {
-                    var syncQue = [];
-                    dataToSync = [];
-                    _(result).each(function (dbData) {
-                        var entityModel;
-                        try {
-                            entityModel = $injector.get(dbData.model);
-                        } catch (e) {
-                            entityModel = $injector.get('DefaultModel');
-                        }
-
-                        if (!entityModel.syncNew)
-                            throw Error("Not defined synchronise method for 'syncNew' for model " + dbData.model);
-
-                        if (!entityModel.syncUpdated)
-                            throw Error("Not defined synchronise method for 'syncUpdated' for model " + dbData.model);
-
-                        if (!entityModel.syncDeleted)
-                            throw Error("Not defined synchronise method for 'syncDeleted' for model " + dbData.model);
-
-                        var newData = [];
-                        var updateData = [];
-                        var deleteData = [];
-
-                        _(dbData.data).each(function (record) {
-                            dataToSync.push(record);
-                            if (syncStart)
-                                syncStart();
-                            if (record.action == "new") {
-                                newData.push(record);
-                            }
-                            if (record.action == "updated") {
-                                updateData.push(record);
-                            }
-
-                            if (record.action == "deleted") {
-                                deleteData.push(record);
-                            }
-                        });
-                        if (dbData.sync) {
-                            syncQue.push({
-                                name: dbData.model,
-                                syncNew: entityModel.syncNew,
-                                syncUpdated: entityModel.syncUpdated,
-                                syncDeleted: entityModel.syncDeleted,
-                                newData: newData,
-                                updateData: updateData,
-                                deleteData: deleteData,
-                                priority: dbData.priority
+                    configuration.model.forEach(function (entity) {
+                        service[entity.model] = new BasicModel(entity, configuration);
+                        if (entity.sync) {
+                            stores.push({
+                                name: entity.model,
+                                key: entity.key,
+                                priority: entity.priority,
+                                sync: entity.sync
                             });
                         }
                     });
+                };
 
-                    if (dataToSync.length > 0) {
-                        syncQue = _(syncQue).sortBy(function (d) {
-                            return d.priority;
-                        });
-                        promiseQueChain(syncQue);
+                service.dispose = function () {
+                    CacheService.clearCache();
+                    HyphenIndexDb.closeDb();
+                };
+
+                service.initializeDb = function (identifier) {
+                    if (!identifier) {
+                        throw new Error("Db identifier not provided for initializeDb function");
                     }
-                    else {
-                        if (syncEnd)
+                    if (!HyphenIndexDb.isInitialized()) {
+                        var dbName = this.configuration.dbName + identifier;
+                        hyphenIndexDb = new HyphenIndexDb(dbName, this.configuration.dbVersion, stores, identifier);
+                        HyphenIndexDb.upgradeEvent(function (event) {
+                            _(stores).each(function (st) {
+                                if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
+                                    HyphenIndexDb.createStore(st.name, st.key);
+                                } else {
+                                    console.log("Store " + st + "already exist and will be not created again");
+                                }
+                            });
+                        });
+
+                        HyphenIndexDb.openEvent(function (event) {
+
+                            var prom = readFromIndexDb(stores);
+                            prom.then(function (data) {
+                                _(stores).each(function (store) {
+                                    HyphenIndexDb.clear(store.name);
+                                });
+
+                                HyphenIndexDb.initialized = true;
+                                // loadData();
+                                console.log("Load data and start app");
+                            }, function (reason) {
+                                //clear stores even when sync fail
+                                _(stores).each(function (store) {
+                                    HyphenIndexDb.clear(store.name);
+                                });
+                                console.log(reason);
+                            });
+
+                        });
+                    } else {
+                        console.log("db already initialized");
+                    }
+                };
+
+                window.addEventListener('online', function () {
+                    if (hyphenIndexDb) {
+                        $timeout(function () {
+                            var prom = readFromIndexDb(stores);
+                            prom.then(function (data) {
+                                _(stores).each(function (store) {
+                                    HyphenIndexDb.clear(store.name);
+                                });
+                                console.log("synchronize");
+                            }, function (reason) {
+                                console.log(reason);
+                            });
+                        }, 5000);
+                    }
+                });
+
+                window.addEventListener('offline', function () {
+                    console.log("is offline");
+                });
+
+                var syncModelsPromise;
+                var dataToSync = [];
+                var readFromIndexDb = function (dbStores) {
+                    syncModelsPromise = $q.defer();
+                    var readPromises = [];
+                    _(dbStores).each(function (store) {
+                        var indexReadPromise = HyphenIndexDb.getStoreData(store.name, store.priority, store.sync);
+                        readPromises.push(indexReadPromise);
+                    });
+
+                    $q.all(readPromises).then(function (result) {
+                        var syncQue = [];
+                        dataToSync = [];
+                        _(result).each(function (dbData) {
+                            var entityModel;
+                            try {
+                                entityModel = $injector.get(dbData.model);
+                            } catch (e) {
+                                entityModel = $injector.get('DefaultModel');
+                            }
+
+                            if (!entityModel.syncNew) {
+                                throw Error("Not defined synchronise method for 'syncNew' for model " + dbData.model);
+                            }
+
+                            if (!entityModel.syncUpdated) {
+                                throw Error("Not defined synchronise method for 'syncUpdated' for model " + dbData.model);
+                            }
+
+                            if (!entityModel.syncDeleted) {
+                                throw Error("Not defined synchronise method for 'syncDeleted' for model " + dbData.model);
+                            }
+
+                            var newData = [];
+                            var updateData = [];
+                            var deleteData = [];
+
+                            _(dbData.data).each(function (record) {
+                                dataToSync.push(record);
+                                if (syncStart) {
+                                    syncStart();
+                                }
+                                if (record.action === "new") {
+                                    newData.push(record);
+                                }
+                                if (record.action === "updated") {
+                                    updateData.push(record);
+                                }
+                                if (record.action === "deleted") {
+                                    deleteData.push(record);
+                                }
+                            });
+                            if (dbData.sync) {
+                                syncQue.push({
+                                    name: dbData.model,
+                                    syncNew: entityModel.syncNew,
+                                    syncUpdated: entityModel.syncUpdated,
+                                    syncDeleted: entityModel.syncDeleted,
+                                    newData: newData,
+                                    updateData: updateData,
+                                    deleteData: deleteData,
+                                    priority: dbData.priority
+                                });
+                            }
+                        });
+
+                        if (dataToSync.length > 0) {
+                            syncQue = _(syncQue).sortBy(function (d) {
+                                return d.priority;
+                            });
+                            promiseQueChain(syncQue);
+                        }
+                        else {
+                            if (syncEnd) {
+                                syncEnd(dataToSync);
+                            }
+                            syncModelsPromise.resolve(dataToSync);
+                        }
+
+                    }, function (r) {
+                        console.log("Cannot read from db. Error: " + r);
+                    });
+
+                    return syncModelsPromise.promise;
+                };
+
+                var promiseQueChain = function (promisesList) {
+                    var item = promisesList[0];
+                    if (item) {
+                        var syncNewPromise = item.syncNew(item.newData);
+                        var syncUpdatedPromise = item.syncUpdated(item.updateData);
+                        var syncDeleted = item.syncDeleted(item.deleteData);
+
+                        $q.all([syncNewPromise, syncUpdatedPromise, syncDeleted]).then(function () {
+                            //clear synced store
+                            //HyphenIndexDb.clear(item.name);
+                            promisesList.shift();
+                            promiseQueChain(promisesList);
+                        }, function (reason) {
+                            syncEnd(reason);
+                            syncModelsPromise.reject(reason);
+                        })
+                    } else {
+                        if (syncEnd) {
                             syncEnd(dataToSync);
+                        }
                         syncModelsPromise.resolve(dataToSync);
                     }
-
-                }, function (r) {
-                    console.log("cannot read from db");
-                });
-
-                return syncModelsPromise.promise;
-            }
-
-            var promiseQueChain = function (promisesList) {
-                var item = promisesList[0];
-                if (item) {
-                    var syncNewPromise = item.syncNew(item.newData);
-                    var syncUpdatedPromise = item.syncUpdated(item.updateData);
-                    var syncDeleted = item.syncDeleted(item.deleteData);
-
-                    $q.all([syncNewPromise, syncUpdatedPromise, syncDeleted]).then(function () {
-                        //clear synced store
-                        //HyphenIndexDb.clear(item.name);
-                        promisesList.shift();
-                        promiseQueChain(promisesList);
-                    }, function (reason) {
-                        syncEnd(reason);
-                        syncModelsPromise.reject(reason);
-                    })
-                } else {
-                    if (syncEnd)
-                        syncEnd(dataToSync);
-                    syncModelsPromise.resolve(dataToSync);
                 }
-            }
 
-            var loadData = function () {
-                _(enqueuedActionsList).each(function (data) {
-                    var method = data.method;
-                    var params = data.params;
-                    method.data = data.data;
-                    method.call(params).then(function (data) {
-                        self.defer.resolve(data);
-                    }, function (reason) {
-                        self.defer.reject(reason);
-                    });
-                });
-            }
+                /*
+                 var loadData = function () {
+                 _(enqueuedActionsList).each(function (data) {
+                 var method = data.method;
+                 var params = data.params;
+                 method.data = data.data;
+                 method.call(params).then(function (data) {
+                 self.defer.resolve(data);
+                 }, function (reason) {
+                 self.defer.reject(reason);
+                 });
+                 });
+                 }
 
-            service.enqueue = function (enqueueList) {
-                if (navigator.onLine) {
-                    enqueuedActionsList = enqueueList;
-                    self.defer = $q.defer();
-                    if (HyphenIndexDb.initialized)
-                        loadData();
-                } else {
-                    console.error("app is offline");
-                    self.defer.resolve("app is offline");
-                }
-                return self.defer.promise;
-            }
 
-            return service;
-        }];
+                 service.enqueue = function (enqueueList) {
+                 if (navigator.onLine) {
+                 enqueuedActionsList = enqueueList;
+                 self.defer = $q.defer();
+                 if (HyphenIndexDb.initialized) {
+                 loadData();
+                 }
+                 } else {
+                 console.error("app is offline");
+                 self.defer.resolve("app is offline");
+                 }
+                 return self.defer.promise;
+                 }
+                 */
+
+                return service;
+            }];
         return provider;
     }]);
 
@@ -264,12 +282,12 @@
         }
 
         HyphenDataStore.saveResult = function (data, store, options) {
-            if (options.processResponse != false) {
+            if (options.processResponse !== false) {
                 if (options.responseHandler) {
                     options.responseHandler(data, HyphenDataStore.prototype.stores);
 
                 } else {
-                    if (options.method == "delete" || options.action == "delete") {
+                    if (options.method === "delete" || options.action === "delete") {
                         HyphenDataStore.prototype.stores[store].remove(data);
                     }
                     else {
@@ -277,7 +295,7 @@
                     }
                 }
             }
-        }
+        };
 
         HyphenDataStore.getStores = function () {
             return HyphenDataStore.prototype.stores;
@@ -292,34 +310,14 @@
         return HyphenDataStore;
     }]);
 
-    jsHyphen.factory('DefaultModel', ['$q', '$timeout', function ($q, $timeout) {
-        var DefaultModel = function (data) {
-        }
-
-        DefaultModel.key = "_id";
-        DefaultModel.indexes = [{name: "Id", key: "id"}, {name: "_Id", key: "_id"}];
-
-        DefaultModel.synchronize = function () {
-            var def = $q.defer();
-            $timeout(function () {
-                def.resolve("data resolvedd");
-            }, 100);
-
-            return def.promise;
-        }
-
-        return DefaultModel;
-
-    }]);
-
-    jsHyphen.factory("BasicModel", ['ApiCallFactory', 'HyphenDataStore', '$injector', 'HyphenSynchronizer', '$q', 'CacheService', function (ApiCallFactory, HyphenDataStore, $injector, HyphenSynchronizer, $q, CacheService) {
-        var promises = [];
+    jsHyphen.factory("BasicModel", ['ApiCallFactory', 'HyphenDataStore', '$injector', 'HyphenSynchronizer', '$q', 'CacheService', function
+        (ApiCallFactory, HyphenDataStore, $injector, HyphenSynchronizer, $q, CacheService) {
         var BasicModel = function (modelData, configuration) {
             this.entityModel = null;
             try {
                 this.entityModel = $injector.get(modelData.model);
             } catch (e) {
-                this.entityModel = $injector.get('DefaultModel');
+                throw new Error("Model not defned for: " + modelData.model);
             }
             var dataStore = new HyphenDataStore(modelData.model, this.entityModel);
 
@@ -328,7 +326,6 @@
             this.api = {};
 
             var apiCallFactory = new ApiCallFactory();
-            var promises = [];
             _(modelData.rest).each(function (rest) {
                 var self = this;
                 var apiCall = apiCallFactory.createApiCall(rest, configuration, modelData.model);
@@ -336,6 +333,7 @@
                 self.api[rest.name].loading = false;
 
                 this.api[rest.name].call = function (params) {
+                    var promise;
                     //initialize promise for every call!!!
                     var actionPromise = $q.defer();
 
@@ -345,12 +343,17 @@
                     if (navigator.onLine) {
                         if (!CacheService.isCached(cacheItem)) {
                             apiCall.dataSet = self.api[rest.name].data;
-                            var promise = apiCall.invoke.call(apiCall, params);
+                            promise = apiCall.invoke.call(apiCall, params);
                             self.api[rest.name].loading = true;
                             promise.then(function (result) {
                                 self.api[rest.name].loading = false;
+
+                                actionPromise.resolve(angular.copy(result));
+                                result.data = configuration.responseInterceptor ?
+                                    configuration.responseInterceptor(result.data, rest, dataStore.stores[modelData.model]) :
+                                    result.data;
                                 HyphenDataStore.saveResult(result.data, modelData.model, rest);
-                                actionPromise.resolve(result);
+
                             }, function (reason) {
                                 self.api[rest.name].loading = false;
                                 actionPromise.reject(reason);
@@ -376,24 +379,18 @@
                     }
 
                     //if the method is defined as callOnce, call method only first time and return empty arry every next time
-                    if (rest.cache && rest.method != "get")
+                    if (rest.cache && rest.method !== "get") {
                         throw new Error("Cache option can be switch on only for get parameters");
-
-                    if (rest.cache && rest.method == "get" && !CacheService.isCached(cacheItem)) {
-                        CacheService.addUrl(cacheItem);
                     }
 
-                    promises.push(promise);
-                    $q.all(promises);
+                    if (rest.cache && rest.method === "get" && !CacheService.isCached(cacheItem)) {
+                        CacheService.addUrl(cacheItem);
+                    }
 
                     return actionPromise.promise;
                 };
             }, this);
         };
-
-        BasicModel.getPromises = function () {
-            return promises;
-        }
 
         return BasicModel;
 
@@ -427,7 +424,7 @@
 
         this.isCached = function (url) {
             var u = _(urls).filter(function (data) {
-                return data == url;
+                return data === url;
             });
 
             return u.length > 0 ? true : false;
@@ -441,33 +438,34 @@
         return this;
     }]);
 
-    jsHyphen.factory("ApiCallFactory", ['HyphenPost', 'HyphenGet', 'HyphenPut', 'HyphenDelete', function (HyphenPost, HyphenGet, HyphenPut, HyphenDelete) {
-        var ApiCallFactory = function () {
+    jsHyphen.factory("ApiCallFactory", ['HyphenPost', 'HyphenGet', 'HyphenPut', 'HyphenDelete',
+        function (HyphenPost, HyphenGet, HyphenPut, HyphenDelete) {
+            var ApiCallFactory = function () {
 
-        }
-        ApiCallFactory.prototype.callType = HyphenGet;
-        ApiCallFactory.prototype.createApiCall = function (options, configuration, dataModel) {
-
-            switch (options.method) {
-                case "get":
-                    this.callType = HyphenGet;
-                    break;
-                case "post":
-                    this.callType = HyphenPost;
-                    break;
-                case "put":
-                    this.callType = HyphenPut;
-                    break;
-                case "delete":
-                    this.callType = HyphenDelete;
-                    break;
             }
+            ApiCallFactory.prototype.callType = HyphenGet;
+            ApiCallFactory.prototype.createApiCall = function (options, configuration, dataModel) {
 
-            return new this.callType(options, configuration, dataModel);
-        }
+                switch (options.method) {
+                    case "get":
+                        this.callType = HyphenGet;
+                        break;
+                    case "post":
+                        this.callType = HyphenPost;
+                        break;
+                    case "put":
+                        this.callType = HyphenPut;
+                        break;
+                    case "delete":
+                        this.callType = HyphenDelete;
+                        break;
+                }
 
-        return ApiCallFactory;
-    }])
+                return new this.callType(options, configuration, dataModel);
+            };
+
+            return ApiCallFactory;
+        }])
 
 })
 ();
@@ -791,13 +789,14 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
         var self = this;
         _(model.indexes).each(function (index) {
             self["getBy" + index.name] = function (id) {
-                if (!self["index" + index.name])
+                if (!self["index" + index.name]) {
                     self["index" + index.name] = _(self.getData()).indexBy(function (data) {
                         return data[index.key];
                     });
+                }
 
                 return self["index" + index.name][id];
-            }
+            };
         });
     };
 
@@ -812,29 +811,29 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
 
     HyphenDataModel.prototype.getData = function () {
         return _(this.data).filter(function (el) {
-            return el.action != "deleted";
-        })
-    }
+            return el.action !== "deleted";
+        });
+    };
 
     HyphenDataModel.prototype.where = function (condition) {
         return _(this.data).filter(function (el) {
-            return el[condition.prop] == condition.value;
-        })
-    }
+            return el[condition.prop] === condition.value;
+        });
+    };
 
-    HyphenDataModel.prototype.remove = function (data) {
+    HyphenDataModel.prototype.remove = function (dataParam) {
         var self = this;
         var key = this.model.key;
-        var data = Array.isArray(data) ? data : [data];
+        var data = Array.isArray(dataParam) ? dataParam : [dataParam];
         _(data).each(function (record) {
             if (navigator.onLine) {
                 //HyphenIndexDb.deleteRecord(self.modelName, record[key]);
                 var id = (record && record[key]) ? record[key] : record;
                 this.data = _(this.data).filter(function (element) {
-                    return element[key] != id;
+                    return element[key] !== id;
                 });
             } else {
-                if (record.action == "new") {
+                if (record.action === "new") {
                     HyphenIndexDb.deleteRecord(self.modelName, record[key]);
                 }
                 else {
@@ -842,9 +841,9 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
                     HyphenIndexDb.addOrUpdateRecord(record, self.modelName, record[key]);
                 }
 
-                var id = (record && record[key]) ? record[key] : record;
+                var delId = (record && record[key]) ? record[key] : record;
                 this.data = _(this.data).filter(function (element) {
-                    return element[key] != id;
+                    return element[key] !== delId;
                 });
 
             }
@@ -854,35 +853,39 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
 
     };
 
-    HyphenDataModel.prototype.add = function (data) {
+    HyphenDataModel.prototype.add = function (records) {
         var self = this;
-        data = JSON.parse(JSON.stringify(data));
+        var addData = JSON.parse(JSON.stringify(records));
         var key = this.model.key;
-        var data = Array.isArray(data) ? data : [data];
+        var data = Array.isArray(addData) ? addData : [addData];
 
         _(data).each(function (record) {
             var index;
-            if (!record[key])
+            if (!record[key]) {
                 throw new Error("Key is not defined for '" + self.modelName + "', record cannot be added. Record" + record);
+            }
 
             var existEl = _(self.data).find(function (el, ind) {
                 index = ind;
-                return el[key] == record[key];
+                return el[key] === record[key];
             });
 
             if (existEl) {
-                if (!navigator.onLine)
-                    if (record.action != "new")
+                if (!navigator.onLine) {
+                    if (record.action !== "new") {
                         record.action = "updated";
+                    }
+                }
+
                 self.data[index] = _.extend(new self.model(record), record);
-                ;
 
                 if (!navigator.onLine) {
                     HyphenIndexDb.updateRecordStore(record, self.modelName, record[key]);
                 }
             } else {
-                if (!navigator.onLine)
+                if (!navigator.onLine) {
                     record.action = "new";
+                }
 
                 record = _.extend(new self.model(record), record);
                 self.data.push(record);
@@ -900,21 +903,21 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', function (HyphenIndexDb) {
 /**
  * Created by blazejgrzelinski on 25/11/15.
  */
-jsHyphen.factory("HyphenCallBase", ['$http', function ($http) {
+jsHyphen.factory('HyphenCallBase', ['$http', function ($http) {
     var HyphenCallBase = function (httpOptions, hyphenConfiguration) {
         this.httpOptions = httpOptions;
         this.hyphenConfiguration = hyphenConfiguration;
         this.$http = $http;
         this.config = {};
-    }
+    };
 
     HyphenCallBase.prototype.urlParser = function (url, params) {
-        var params = Array.isArray(params) ? params : [params];
+        var parameters = Array.isArray(params) ? params : [params];
         var segments = url.split("/");
         var paramCounter = 0;
         _(segments).each(function (seg, index) {
-            if (seg.indexOf(":") != -1) {
-                segments[index] = params[paramCounter];
+            if (seg.indexOf(":") !== -1) {
+                segments[index] = parameters[paramCounter];
                 paramCounter++;
             }
         });
@@ -923,19 +926,22 @@ jsHyphen.factory("HyphenCallBase", ['$http', function ($http) {
     };
 
     var strEndsWith = function(str, suffix) {
-        return str.match(suffix+"$")==suffix;
-    }
+        return str.match(suffix+"$")===suffix;
+    };
 
     HyphenCallBase.prototype.invoke = function (params) {
-        if(strEndsWith(this.hyphenConfiguration.baseUrl, "/"))
-            this.hyphenConfiguration.baseUrl = this.hyphenConfiguration.baseUrl.substring(0, this.hyphenConfiguration.baseUrl.length-1);
+        if(strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
+            this.hyphenConfiguration.baseUrl = this.hyphenConfiguration.baseUrl.substring(0, this.hyphenConfiguration.baseUrl.length - 1);
+        }
+
         this.config.url = this.hyphenConfiguration.baseUrl + "/" + this.urlParser(this.httpOptions.url, params);
         this.config.data = this.dataSet;
-        if (this.hyphenConfiguration.requestInterceptor)
+        if (this.hyphenConfiguration.requestInterceptor) {
             this.config = this.hyphenConfiguration.requestInterceptor(this.config);
+        }
 
         return this.$http(this.config);
-    }
+    };
 
     return HyphenCallBase;
 
@@ -945,7 +951,7 @@ jsHyphen.factory("HyphenGet", ['HyphenCallBase', function (HyphenCallBase) {
     var HyphenGet = function (httpOptions, hyphenConfiguration) {
         HyphenCallBase.call(this, httpOptions, hyphenConfiguration);
         this.config.method = "GET";
-    }
+    };
     HyphenGet.prototype = Object.create(HyphenCallBase.prototype);
 
     return HyphenGet;
@@ -956,7 +962,7 @@ jsHyphen.factory("HyphenPost", ['HyphenCallBase', function (HyphenCallBase) {
     var HyphenPost = function (httpOptions, hyphenConfiguration) {
         HyphenCallBase.call(this, httpOptions, hyphenConfiguration);
         this.config.method = "POST";
-    }
+    };
 
     HyphenPost.prototype = Object.create(HyphenCallBase.prototype);
 
@@ -970,7 +976,7 @@ jsHyphen.factory("HyphenPut", ['HyphenCallBase', function (HyphenCallBase) {
         HyphenCallBase.call(this, httpOptions, hyphenConfiguration);
         this.httpOptions = httpOptions;
         this.config.method = "PUT";
-    }
+    };
 
     HyphenPut.prototype = Object.create(HyphenCallBase.prototype);
 
@@ -984,7 +990,7 @@ jsHyphen.factory("HyphenDelete", ['HyphenCallBase', function (HyphenCallBase) {
         HyphenCallBase.call(this, httpOptions, hyphenConfiguration);
         this.httpOptions = httpOptions;
         this.config.method = "DELETE";
-    }
+    };
 
     HyphenDelete.prototype = Object.create(HyphenCallBase.prototype);
 

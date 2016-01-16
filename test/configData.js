@@ -65,8 +65,8 @@ var configuration = {
         config.headers = {Authorization: token};
         return config;
     },
-    responseInterceptor: function () {
-        throw new Error("Not implemented");
+    responseInterceptor: function (data, config) {
+        return data;
     }
 };
 

@@ -1,0 +1,27 @@
+{
+  "boss": true,
+  "curly": true,
+  "eqeqeq": true,
+  "eqnull": true,
+  "expr": true,
+  "immed": true,
+  "indent": 2,
+  "maxlen": 140,
+  "noarg": true,
+  "onevar": true,
+  "quotmark": "true",
+  "asi": true,
+  "smarttabs": true,
+  "trailing": true,
+  "undef": true,
+  "unused": true,
+  "browser": true,
+  "globals": {
+    "jsHyphen" : true,
+    "module": true,
+    "angular": true,
+    "_": true,
+    "console": true,
+    "Promise" : true
+  }
+}

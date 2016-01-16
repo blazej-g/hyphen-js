@@ -1,4 +1,4 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
     'use strict';
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -7,7 +7,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-conventional-changelog');
     grunt.loadNpmTasks('grunt-zip');
-
 
     // Project configuration.
     grunt.initConfig({
@@ -31,7 +30,11 @@ module.exports = function(grunt) {
                 banner: '<%= meta.banner %>'
             },
             dist: {
-                src: ['src/js-hyphen.js', 'src/js-hyphen-indexed-db.js', 'src/js-hyphen-data-model.js', 'src/js-hyphen-http.js', 'src/js-hyphen-synchronizer.js'],
+                src: ['src/js-hyphen.js',
+                    'src/js-hyphen-indexed-db.js',
+                    'src/js-hyphen-data-model.js',
+                    'src/js-hyphen-http.js',
+                    'src/js-hyphen-synchronizer.js'],
                 dest: '<%= dirs.dest %>/<%= pkg.name %>.js'
             }
         },
@@ -80,33 +83,37 @@ module.exports = function(grunt) {
         }
     });
 
-
     // Default task.
     grunt.registerTask('default', ['bump', 'build']);
 
     // Build task.
     grunt.registerTask('build', ['karma:build', 'concat', 'uglify', 'zip']);
 
-
     // Provides the "bump" task.
-    grunt.registerTask('bump', 'Increment version number', function() {
+    grunt.registerTask('bump', 'Increment version number', function () {
         var versionType = grunt.option('type');
+
         function bumpVersion(version, versionType) {
             var type = {patch: 2, minor: 1, major: 0},
                 parts = version.split('.'),
                 idx = type[versionType || 'patch'];
             parts[idx] = parseInt(parts[idx], 10) + 1;
-            while(++idx < parts.length) { parts[idx] = 0; }
+            while (++idx < parts.length) {
+                parts[idx] = 0;
+            }
             return parts.join('.');
         }
+
         var version;
+
         function updateFile(file) {
             var json = grunt.file.readJSON(file);
             version = json.version = bumpVersion(json.version, versionType || 'patch');
             grunt.file.write(file, JSON.stringify(json, null, '  '));
         }
+
         updateFile('package.json');
-       // updateFile('bower.json');
+        // updateFile('bower.json');
         grunt.log.write('Version bumped to ' + version);
     });
 
