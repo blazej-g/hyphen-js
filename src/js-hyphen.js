@@ -213,8 +213,8 @@ var jsHyphen = angular.module('jsHyphen', []);
     }]);
 
     jsHyphen.factory("HyphenDataStore", ['HyphenDataModel', function (HyphenDataModel) {
-        var HyphenDataStore = function (store, entityModel) {
-            HyphenDataStore.prototype.stores[store] = new HyphenDataModel(entityModel, store);
+        var HyphenDataStore = function (store, entityModel, key) {
+            HyphenDataStore.prototype.stores[store] = new HyphenDataModel(entityModel, store, key);
         }
 
         HyphenDataStore.prototype.stores = {}
@@ -270,7 +270,7 @@ var jsHyphen = angular.module('jsHyphen', []);
             } catch (e) {
                 throw new Error("Model not defned for: " + modelData.model + e.message);
             }
-            var dataStore = new HyphenDataStore(modelData.model, this.entityModel);
+            var dataStore = new HyphenDataStore(modelData.model, this.entityModel, modelData.key);
 
             //entities public properties
             this.dataModel = dataStore.stores[modelData.model];
@@ -281,7 +281,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                 var self = this;
                 var apiCall = apiCallFactory.createApiCall(rest, configuration, modelData.model);
                 this.api[rest.name] = {};
-                self.api[rest.name].loading = false;
+                self.api[rest.name].loading = 0;
 
                 this.api[rest.name].call = function (params) {
                     var promise;
@@ -295,10 +295,10 @@ var jsHyphen = angular.module('jsHyphen', []);
                         if (!CacheService.isCached(cacheItem)) {
                             apiCall.dataSet = self.api[rest.name].data;
                             promise = apiCall.invoke.call(apiCall, params);
-                            self.api[rest.name].loading = true;
+                            self.api[rest.name].loading++;
                             self.api[rest.name].loaded = false;
                             promise.then(function (result) {
-                                self.api[rest.name].loading = false;
+                                self.api[rest.name].loading--;
                                 self.api[rest.name].loaded = true;
 
                                 actionPromise.resolve(angular.copy(result));
@@ -308,7 +308,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                                 HyphenDataStore.saveResult(result.data, modelData.model, rest);
 
                             }, function (reason) {
-                                self.api[rest.name].loading = false;
+                                self.api[rest.name].loading--;
                                 actionPromise.reject(reason);
                             });
                         } else {
@@ -429,12 +429,11 @@ var jsHyphen = angular.module('jsHyphen', []);
 
         window.addEventListener('offline', function () {
             if(!manualOffline) {
-                online = false;
                 if(timer){
                     $timeout.cancel(timer);
                 }
                 $timeout(function () {
-                    online = true;
+                    online = false;
                     $rootScope.$broadcast("hyphenOffline");
                 });
             }

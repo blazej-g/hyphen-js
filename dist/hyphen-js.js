@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Angular application data layer
- * @version v0.0.135 - 2016-02-11 * @link 
+ * @version v0.0.179 - 2016-02-19 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -218,8 +218,8 @@
     }]);
 
     jsHyphen.factory("HyphenDataStore", ['HyphenDataModel', function (HyphenDataModel) {
-        var HyphenDataStore = function (store, entityModel) {
-            HyphenDataStore.prototype.stores[store] = new HyphenDataModel(entityModel, store);
+        var HyphenDataStore = function (store, entityModel, key) {
+            HyphenDataStore.prototype.stores[store] = new HyphenDataModel(entityModel, store, key);
         }
 
         HyphenDataStore.prototype.stores = {}
@@ -275,7 +275,7 @@
             } catch (e) {
                 throw new Error("Model not defned for: " + modelData.model + e.message);
             }
-            var dataStore = new HyphenDataStore(modelData.model, this.entityModel);
+            var dataStore = new HyphenDataStore(modelData.model, this.entityModel, modelData.key);
 
             //entities public properties
             this.dataModel = dataStore.stores[modelData.model];
@@ -286,7 +286,7 @@
                 var self = this;
                 var apiCall = apiCallFactory.createApiCall(rest, configuration, modelData.model);
                 this.api[rest.name] = {};
-                self.api[rest.name].loading = false;
+                self.api[rest.name].loading = 0;
 
                 this.api[rest.name].call = function (params) {
                     var promise;
@@ -300,10 +300,10 @@
                         if (!CacheService.isCached(cacheItem)) {
                             apiCall.dataSet = self.api[rest.name].data;
                             promise = apiCall.invoke.call(apiCall, params);
-                            self.api[rest.name].loading = true;
+                            self.api[rest.name].loading++;
                             self.api[rest.name].loaded = false;
                             promise.then(function (result) {
-                                self.api[rest.name].loading = false;
+                                self.api[rest.name].loading--;
                                 self.api[rest.name].loaded = true;
 
                                 actionPromise.resolve(angular.copy(result));
@@ -313,7 +313,7 @@
                                 HyphenDataStore.saveResult(result.data, modelData.model, rest);
 
                             }, function (reason) {
-                                self.api[rest.name].loading = false;
+                                self.api[rest.name].loading--;
                                 actionPromise.reject(reason);
                             });
                         } else {
@@ -434,12 +434,11 @@
 
         window.addEventListener('offline', function () {
             if(!manualOffline) {
-                online = false;
                 if(timer){
                     $timeout.cancel(timer);
                 }
                 $timeout(function () {
-                    online = true;
+                    online = false;
                     $rootScope.$broadcast("hyphenOffline");
                 });
             }
@@ -759,31 +758,60 @@ jsHyphen.factory("HyphenIndexDb", ['IndexedDbCommands', function (IndexedDbComma
     return HyphenIndexDb;
 }]);
 jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', function (HyphenIndexDb, OfflineOnlineService) {
-    var HyphenDataModel = function (model, name) {
+    var HyphenDataModel = function (model, name, key) {
         this.model = model;
         this.modelName = name;
+        this.key = key;
         this.data = [];
         var self = this;
-        _(model.indexes).each(function (index) {
-            self["getBy" + index.name] = function (id) {
-                if (!self["index" + index.name]) {
-                    self["index" + index.name] = _(self.getData()).indexBy(function (data) {
-                        return data[index.key];
-                    });
-                }
 
-                return self["index" + index.name][id];
-            };
-        });
+        if (model.indexes) {
+            Object.keys(model.indexes).forEach(function (key) {
+                self["getBy" + model.indexes[key]] = function (id) {
+                    if (!self["index" + model.indexes[key]]) {
+                        self["index" + model.indexes[key]] = _(self.getData()).indexBy(function (data) {
+                            return data[key];
+                        });
+                    }
+
+                    return self["index" + model.indexes[key]][id];
+                };
+            });
+        }
+
+        if (model.groups) {
+            Object.keys(model.groups).forEach(function (key) {
+                self["getGroupBy" + model.groups[key]] = function (id) {
+                    if (!self["group" + model.groups[key]]) {
+                        self["group" + model.groups[key]] = _(self.getData()).groupBy(function (data) {
+                            return data[key];
+                        });
+                    }
+
+                    return self["group" + model.groups[key]][id];
+                };
+            });
+        }
     };
 
     HyphenDataModel.prototype.data = [];
 
     var clearIndexes = function () {
         var self = this;
-        _(this.model.indexes).each(function (index) {
-            self["index" + index.name] = null;
-        });
+        if(self.model.indexes) {
+            Object.keys(self.model.indexes).forEach(function (key) {
+                self["index" + self.model.indexes[key]] = null;
+            });
+        }
+    };
+
+    var clearGroups = function () {
+        var self = this;
+        if(self.model.groups) {
+            Object.keys(self.model.groups).forEach(function (key) {
+                self["group" + self.model.groups[key]] = null;
+            });
+        }
     };
 
     HyphenDataModel.prototype.getData = function () {
@@ -800,7 +828,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
     HyphenDataModel.prototype.remove = function (dataParam, preventSync) {
         var self = this;
-        var key = this.model.key;
+        var key = self.key;
         var data = Array.isArray(dataParam) ? dataParam : [dataParam];
         _(data).each(function (record) {
             //if app is in online mode or user explicit set prevent sync flag
@@ -828,13 +856,14 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
         }, this);
 
         clearIndexes.call(this);
+        clearGroups.call(this);
 
     };
 
     HyphenDataModel.prototype.add = function (records, preventSync) {
         var self = this;
         var addData = JSON.parse(JSON.stringify(records));
-        var key = this.model.key;
+        var key = self.key;
         var data = Array.isArray(addData) ? addData : [addData];
 
         _(data).each(function (record) {
@@ -848,7 +877,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
             //update
             if (element) {
-                var newRecord =  _.extend(new self.model(record), record);
+                var newRecord = _.extend(new self.model(record), record);
                 self.data = _([newRecord].concat(self.data)).uniq(false, function (element) {
                     return element[key];
                 });
@@ -871,6 +900,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
         });
 
         clearIndexes.call(this);
+        clearGroups.call(this);
     };
 
     return HyphenDataModel;
@@ -905,16 +935,28 @@ jsHyphen.factory('HyphenCallBase', ['$http', function ($http) {
     };
 
     HyphenCallBase.prototype.invoke = function (params) {
-        if(strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
-            this.hyphenConfiguration.baseUrl = this.hyphenConfiguration.baseUrl.substring(0, this.hyphenConfiguration.baseUrl.length - 1);
+        this.config = angular.copy(this.httpOptions);
+        var url = "";
+        if(!strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
+            url=  this.hyphenConfiguration.baseUrl ;
         }
 
-        this.config.url = this.hyphenConfiguration.baseUrl + "/" + this.urlParser(this.httpOptions.url, params);
+        if(_.isArray(params)) {
+            this.config.url = url + this.urlParser(this.httpOptions.url, params);
+        }else{
+            if(params) {
+                this.config.url = url + this.httpOptions.url + "?" + params;
+            }else {
+                this.config.url = url + this.httpOptions.url;
+            }
+        }
         this.config.data = this.dataSet;
         if (this.hyphenConfiguration.requestInterceptor) {
             this.config = this.hyphenConfiguration.requestInterceptor(this.config);
         }
 
+        //hyphen cache property is the same like the native $http cache so it prevent from making http request
+        this.config.cache=false;
         return this.$http(this.config);
     };
 

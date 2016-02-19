@@ -28,16 +28,28 @@ jsHyphen.factory('HyphenCallBase', ['$http', function ($http) {
     };
 
     HyphenCallBase.prototype.invoke = function (params) {
-        if(strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
-            this.hyphenConfiguration.baseUrl = this.hyphenConfiguration.baseUrl.substring(0, this.hyphenConfiguration.baseUrl.length - 1);
+        this.config = angular.copy(this.httpOptions);
+        var url = "";
+        if(!strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
+            url=  this.hyphenConfiguration.baseUrl ;
         }
 
-        this.config.url = this.hyphenConfiguration.baseUrl + "/" + this.urlParser(this.httpOptions.url, params);
+        if(_.isArray(params)) {
+            this.config.url = url + this.urlParser(this.httpOptions.url, params);
+        }else{
+            if(params) {
+                this.config.url = url + this.httpOptions.url + "?" + params;
+            }else {
+                this.config.url = url + this.httpOptions.url;
+            }
+        }
         this.config.data = this.dataSet;
         if (this.hyphenConfiguration.requestInterceptor) {
             this.config = this.hyphenConfiguration.requestInterceptor(this.config);
         }
 
+        //hyphen cache property is the same like the native $http cache so it prevent from making http request
+        this.config.cache=false;
         return this.$http(this.config);
     };
 

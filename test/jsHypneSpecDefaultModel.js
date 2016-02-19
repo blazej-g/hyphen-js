@@ -123,7 +123,7 @@ describe("Hyphen JS", function () {
         inject(function (Hyphen) {
             setTimeout(function () {
                 $httpBackend.expectGET("/users/1").respond(200, user)
-                Hyphen.Users.api.getOne.call(1);
+                Hyphen.Users.api.getOne.call([1]);
                 $httpBackend.flush();
                 expect(Hyphen.Users.dataModel.getById(1)._id).toBe(1);
                 done();
@@ -148,7 +148,7 @@ describe("Hyphen JS", function () {
         inject(function (Hyphen) {
             setTimeout(function () {
                 $httpBackend.expectDELETE("/users/1").respond(200, user);
-                Hyphen.Users.api.delete.call(1);
+                Hyphen.Users.api.delete.call([1]);
                 $httpBackend.flush();
 
                 expect(Hyphen.Users.dataModel.getById(1)).toBeUndefined();

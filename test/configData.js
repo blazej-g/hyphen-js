@@ -4,28 +4,33 @@ var dataModel = [
         model: "Users",
         key: "_id",
         rest: [
-            {name: "signIn", url: "users/login", method: "post", processResponse: false},
-            {name: "update", url: "users/update", method: "put"},
-            {name: "create", url: "users/create", method: "post"},
-            {name: "getAll", url: "users", method: "get"},
-            {name: "delete", url: "users/:id", method: "delete"},
-            {name: "getOne", url: "users/:id", method: "get"},
-            {name: "removeAll", url: "users/remove_all", method: "post", action: "delete"},
-            {name: "getUserProjects", url: "users/user_projects", method: "get", responseHandler: function(data, hyphenModels){
-                var projects= data.projects;
-                hyphenModels.Projects.add(projects);
-                delete data.projects;
-                hyphenModels.Users.add(data);
-            }},
+            {name: "signIn", url: "/users/login", method: "post", processResponse: false},
+            {name: "update", url: "/users/update", method: "put"},
+            {name: "create", url: "/users/create", method: "post"},
+            {name: "getAll", url: "/users", method: "get"},
+            {name: "delete", url: "/users/:id", method: "delete"},
+            {name: "getOne", url: "/users/:id", method: "get"},
+            {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
+            {
+                name: "getUserProjects",
+                url: "/users/user_projects",
+                method: "get",
+                responseHandler: function (data, hyphenModels) {
+                    var projects = data.projects;
+                    hyphenModels.Projects.add(projects);
+                    delete data.projects;
+                    hyphenModels.Users.add(data);
+                }
+            },
         ],
     },
     {
         model: "Projects",
         key: "_id",
         rest: [
-            {name: "create", url: "projects/create", method: "post"},
-            {name: "getAll", url: "projects", method: "get"},
-            {name: "removeAll", url: "projects/remove_all", method: "post", action: "delete"},
+            {name: "create", url: "/projects/create", method: "post"},
+            {name: "getAll", url: "/projects", method: "get"},
+            {name: "removeAll", url: "/projects/remove_all", method: "post", action: "delete"},
         ],
     }
 ];
@@ -82,11 +87,17 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
         return this.user_first_name + " " + this.user_last_name;
     }
 
-    User.indexes = [{name: "Id", key: "_id"}, {name: "FirstName", key: "user_first_name"}];
+    User.indexes =
+    {
+        _id: "Id",
+        user_first_name: "FirstName"
+    }
 
-    User.synchronize = function(data){
-        var def= $q.defer();
-        $timeout(function(){
+    //[{name: "Id", key: "_id"}, {name: "FirstName", key: "user_first_name"}];
+
+    User.synchronize = function (data) {
+        var def = $q.defer();
+        $timeout(function () {
             console.log("synchronize user")
             def.resolve("data resolvedd");
         }, 100);
@@ -105,17 +116,16 @@ jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
 
     Project.key = "_id";
 
-    Project.indexes = [{name: "Id", key: "_id"}];
+    Project.indexes = {_id: "Id"}
 
-    Project.synchronize = function(){
-        var def= $q.defer();
-        $timeout(function(){
+    Project.synchronize = function () {
+        var def = $q.defer();
+        $timeout(function () {
             def.resolve("data resolvedd");
         }, 100);
 
         return def.promise;
     }
-
 
     return Project;
 
