@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Angular application data layer
- * @version v0.0.179 - 2016-02-19 * @link 
+ * @version v0.0.186 - 2016-02-19 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);

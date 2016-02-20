@@ -10,6 +10,9 @@ var dataModel = [
             {name: "getAll", url: "/users", method: "get"},
             {name: "delete", url: "/users/:id", method: "delete"},
             {name: "getOne", url: "/users/:id", method: "get"},
+            {name: "getUserComplexParams", url: "/users/:userId/project/:projectId?name=:firstName&age=:age", method: "get"},
+            {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get"},
+            {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get"},
             {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
             {
                 name: "getUserProjects",
@@ -37,6 +40,7 @@ var dataModel = [
 
 var user = {
     "_id": 1,
+    memberId: 1,
     user_email: "test1@email.com",
     user_first_name: "Blazej",
     user_last_name: "Grzelinski",
@@ -44,6 +48,7 @@ var user = {
 };
 var user2 = {
     "_id": 2,
+    memberId: 1,
     user_email: "test2@email.com",
     user_first_name: "Mike",
     user_last_name: "Collins",
@@ -51,6 +56,7 @@ var user2 = {
 };
 var user3 = {
     "_id": 3,
+    memberId: 2,
     user_email: "test3@email.pl",
     user_first_name: "Nathan",
     user_last_name: "Star",
@@ -91,6 +97,11 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
     {
         _id: "Id",
         user_first_name: "FirstName"
+    }
+
+    User.groups =
+    {
+        memberId: "MemberId"
     }
 
     //[{name: "Id", key: "_id"}, {name: "FirstName", key: "user_first_name"}];
