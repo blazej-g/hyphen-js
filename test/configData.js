@@ -3,6 +3,7 @@ var dataModel = [
         syncMethod: {action: "sync", url: "users/sync", method: "put"},
         model: "Users",
         key: "_id",
+        sync:true,
         rest: [
             {name: "signIn", url: "/users/login", method: "post", processResponse: false},
             {name: "update", url: "/users/update", method: "put"},
@@ -104,7 +105,20 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
         memberId: "MemberId"
     }
 
-    //[{name: "Id", key: "_id"}, {name: "FirstName", key: "user_first_name"}];
+
+    User.createOffline = function (params, data, dataModel) {
+        data._id = Math.random() * 10000;
+        dataModel.Users.add(data);
+        var d="fdf";
+    };
+
+
+    User.deleteOffline = function (params, data, dataModel) {
+        var user = dataModel.Users.getById(params);
+        if (user)
+            dataModel.Users.remove(user);
+    }
+
 
     User.synchronize = function (data) {
         var def = $q.defer();

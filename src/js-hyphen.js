@@ -23,13 +23,6 @@ var jsHyphen = angular.module('jsHyphen', []);
                     hyphenConfiguration = configuration;
                     hyphenSynchronizer = new HyphenSynchronizer(configuration);
 
-                    service.switchToOffline = function () {
-                        OfflineOnlineService.setOffline();
-                    };
-                    service.switchToOnline = function () {
-                        OfflineOnlineService.setOnline();
-                    };
-
                     configuration.model.forEach(function (entity) {
                         service[entity.model] = new BasicModel(entity, configuration);
                         if (entity.sync) {
@@ -47,6 +40,17 @@ var jsHyphen = angular.module('jsHyphen', []);
                 service.dispose = function () {
                     CacheService.clearCache();
                     HyphenIndexDb.closeDb();
+                };
+
+                service.getState = function () {
+                  return OfflineOnlineService.getState();
+                };
+
+                service.switchToOffline = function () {
+                    OfflineOnlineService.setOffline();
+                };
+                service.switchToOnline = function () {
+                    OfflineOnlineService.setOnline();
                 };
 
                 service.initializeDb = function (identifier) {
@@ -316,13 +320,13 @@ var jsHyphen = angular.module('jsHyphen', []);
                         }
                     } else {
                         if (self.entityModel[rest.name + "Offline"]) {
-                            try {
+                           // try {
                                 self.entityModel[rest.name + "Offline"](params, self.api[rest.name].data, HyphenDataStore.prototype.stores);
                                 actionPromise.resolve(self.api[rest.name].data);
-                            } catch (error) {
-                                console.warn(error);
-                                actionPromise.reject("can not save data in offline" + error);
-                            }
+                            //} catch (error) {
+                            //    console.warn(error);
+                            //    actionPromise.reject("can not save data in offline" + error);
+                            // }
 
                         } else {
                             var message = "No offline method: " + modelData.model + "." + rest.name + "Offline";

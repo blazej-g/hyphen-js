@@ -11,11 +11,33 @@ describe("Hyphen JS", function () {
     }));
 
 
-    //users
+
     it('should have initialize function', inject(function (Hyphen) {
         expect(Hyphen.initialize).toBeDefined(Function);
     }));
 
+    it('should have switchToOffline function', inject(function (Hyphen) {
+        expect(Hyphen.switchToOffline).toBeDefined(Function);
+    }));
+
+    it('should have switchToOnline function', inject(function (Hyphen) {
+        expect(Hyphen.switchToOnline).toBeDefined(Function);
+    }));
+
+    it('should have getState function', inject(function (Hyphen) {
+        expect(Hyphen.getState).toBeDefined(Function);
+    }));
+
+    it('should have dispose function', inject(function (Hyphen) {
+        expect(Hyphen.dispose).toBeDefined(Function);
+    }));
+
+    it('should have initializeDb function', inject(function (Hyphen) {
+        expect(Hyphen.initializeDb).toBeDefined(Function);
+    }));
+
+
+    //users
     it('should have defined "Users" entity', inject(function (Hyphen) {
         expect(Hyphen.Users).toBeDefined();
     }));
