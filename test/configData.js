@@ -59,7 +59,7 @@ var user3 = {
     "_id": 3,
     memberId: 2,
     user_email: "test3@email.pl",
-    user_first_name: "Nathan",
+    user_first_name: "Antoni",
     user_last_name: "Star",
     user_password: "star_password"
 };
@@ -105,6 +105,10 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
         memberId: "MemberId"
     }
 
+    User.sort =
+    {
+        desc: "user_first_name"
+    }
 
     User.createOffline = function (params, data, dataModel) {
         data._id = Math.random() * 10000;

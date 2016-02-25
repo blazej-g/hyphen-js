@@ -126,6 +126,18 @@ describe("Hyphen JS", function () {
     }));
 
 
+    it('should sort users', inject(function (Hyphen) {
+        $httpBackend.expectPOST("/users/create").respond(200, [user, user2, user3]);
+        Hyphen.Users.api.update.data = [user, user2, user3];
+        Hyphen.Users.api.create.call();
+        $httpBackend.flush();
+
+        console.log(Hyphen.Users.dataModel.getData());
+        expect(Hyphen.Users.dataModel.getData().length).toBe(3);
+
+
+    }));
+
 
 });
 

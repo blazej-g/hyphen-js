@@ -1,5 +1,5 @@
 describe("Hyphen JS", function () {
-
+/*
     beforeEach(module('jsHyphen', function (HyphenProvider) {
 
     }));
@@ -10,6 +10,7 @@ describe("Hyphen JS", function () {
         Hyphen.initializeDb(1);
         $httpBackend = $injector.get('$httpBackend');
     }));
+
 
     it("should sync two new users with server", function (done) {
         inject(function (Hyphen) {
@@ -31,7 +32,7 @@ describe("Hyphen JS", function () {
             }, 100);
         })
     }, 200);
-    /*
+
 
      it("should get all users", function (done) {
      inject(function (Hyphen) {
