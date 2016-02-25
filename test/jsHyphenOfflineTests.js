@@ -44,14 +44,6 @@ describe("Hyphen JS", function () {
         expect($rootScope.$broadcast).toHaveBeenCalledWith('hyphenOnline');
     }));
 
-    it('should create new user in offline mode', inject(function (Hyphen) {
-
-
-
-    }));
-
-
-
 
     it("should create new user in offline mode", function (done) {
         inject(function (Hyphen) {
@@ -99,7 +91,29 @@ describe("Hyphen JS", function () {
         })
     }, 200);
 
-    it("should create two new user in offline mode", function (done) {
+    it("should delete user with name 'blazej'", function (done) {
+        inject(function (Hyphen) {
+            Hyphen.switchToOffline();
+            setTimeout(function () {
+                Hyphen.Users.api.create.data = {user_first_name: "blazej"};
+                Hyphen.Users.api.create.call();
+                Hyphen.Users.api.create.data = {user_first_name: "marta"};
+                Hyphen.Users.api.create.call();
+                Hyphen.Users.api.create.data = {user_first_name: "tymon"};
+                Hyphen.Users.api.create.call();
+                Hyphen.Users.api.create.data = {user_first_name: "tomek"};
+                Hyphen.Users.api.create.call();
+
+                var blazej = Hyphen.Users.dataModel.getByFirstName("blazej");
+                Hyphen.Users.api.delete.call({id: blazej._id});
+                expect(Hyphen.Users.dataModel.getData().length).toBe(3);
+                done();
+            }, 100);
+        })
+    }, 200);
+
+
+    it("should update user with name 'blazej' to new name 'gerard", function (done) {
         inject(function (Hyphen) {
             Hyphen.switchToOffline();
             setTimeout(function () {
@@ -111,13 +125,15 @@ describe("Hyphen JS", function () {
                 Hyphen.Users.api.create.call();
                 Hyphen.Users.api.create.data = {user_first_name: "blazej"};
                 var blazej = Hyphen.Users.dataModel.getByFirstName("blazej");
-                Hyphen.Users.api.delete.call({id: blazej._id});
-
-                expect(Hyphen.Users.dataModel.getData().length).toBe(3);
+                blazej.user_first_name="gerard";
+                Hyphen.Users.api.update.data = blazej;
+                Hyphen.Users.api.update.call();
+                expect(Hyphen.Users.dataModel.getByFirstName("gerard").user_first_name).toBe("gerard");
                 done();
             }, 100);
         })
     }, 200);
+
 
     /*
 

@@ -114,20 +114,20 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
 
 
     User.deleteOffline = function (params, data, dataModel) {
-        var user = dataModel.Users.getById(params);
+        var user = dataModel.Users.getById(params.id);
         if (user)
             dataModel.Users.remove(user);
+    };
+
+    User.updateOffline = function (params, data, dataModel) {
+        dataModel.Users.add(data);
     }
 
 
-    User.synchronize = function (data) {
-        var def = $q.defer();
-        $timeout(function () {
-            console.log("synchronize user")
-            def.resolve("data resolvedd");
-        }, 100);
-
-        return def.promise;
+    User.new = function (record) {
+        delete record._id;
+        Hyphen.Users.api.create.data = record;
+        return Hyphen.Users.api.create.call()
     }
 
     return User;
@@ -138,7 +138,6 @@ jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
     var Project = function () {
 
     }
-
     Project.key = "_id";
 
     Project.indexes = {_id: "Id"}
