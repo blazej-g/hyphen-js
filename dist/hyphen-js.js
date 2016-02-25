@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Angular application data layer
- * @version v0.0.186 - 2016-02-19 * @link 
+ * @version v0.0.193 - 2016-02-25 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -28,13 +28,6 @@
                     hyphenConfiguration = configuration;
                     hyphenSynchronizer = new HyphenSynchronizer(configuration);
 
-                    service.switchToOffline = function () {
-                        OfflineOnlineService.setOffline();
-                    };
-                    service.switchToOnline = function () {
-                        OfflineOnlineService.setOnline();
-                    };
-
                     configuration.model.forEach(function (entity) {
                         service[entity.model] = new BasicModel(entity, configuration);
                         if (entity.sync) {
@@ -52,6 +45,17 @@
                 service.dispose = function () {
                     CacheService.clearCache();
                     HyphenIndexDb.closeDb();
+                };
+
+                service.getState = function () {
+                    return OfflineOnlineService.getState();
+                };
+
+                service.switchToOffline = function () {
+                    OfflineOnlineService.setOffline();
+                };
+                service.switchToOnline = function () {
+                    OfflineOnlineService.setOnline();
                 };
 
                 service.initializeDb = function (identifier) {
@@ -97,6 +101,8 @@
 
                     $q.all(readPromises).then(function (result) {
                         hyphenSynchronizer.synchronize(result);
+                    }, function (reason) {
+                        console.log(reason);
                     });
 
                     return readPromises;
@@ -266,7 +272,7 @@
         return HyphenDataStore;
     }]);
 
-    jsHyphen.factory("BasicModel", ['ApiCallFactory', 'HyphenDataStore', '$injector', '$q', 'CacheService','OfflineOnlineService', function
+    jsHyphen.factory("BasicModel", ['ApiCallFactory', 'HyphenDataStore', '$injector', '$q', 'CacheService', 'OfflineOnlineService', function
         (ApiCallFactory, HyphenDataStore, $injector, $q, CacheService, OfflineOnlineService) {
         var BasicModel = function (modelData, configuration) {
             this.entityModel = null;
@@ -292,9 +298,7 @@
                     var promise;
                     //initialize promise for every call!!!
                     var actionPromise = $q.defer();
-
-                    var args = Array.prototype.slice.call(arguments);
-                    var cacheItem = rest.name + modelData.model + args.join("");
+                    var cacheItem = rest.name + modelData.model + JSON.stringify(params);
 
                     if (OfflineOnlineService.getState()) {
                         if (!CacheService.isCached(cacheItem)) {
@@ -321,13 +325,13 @@
                         }
                     } else {
                         if (self.entityModel[rest.name + "Offline"]) {
-                            try {
-                                self.entityModel[rest.name + "Offline"](params, self.api[rest.name].data, HyphenDataStore.prototype.stores);
-                                actionPromise.resolve(self.api[rest.name].data);
-                            } catch (error) {
-                                console.warn(error);
-                                actionPromise.reject("can not save data in offline" + error);
-                            }
+                            // try {
+                            self.entityModel[rest.name + "Offline"](params, self.api[rest.name].data, HyphenDataStore.prototype.stores);
+                            actionPromise.resolve(self.api[rest.name].data);
+                            //} catch (error) {
+                            //    console.warn(error);
+                            //    actionPromise.reject("can not save data in offline" + error);
+                            // }
 
                         } else {
                             var message = "No offline method: " + modelData.model + "." + rest.name + "Offline";
@@ -408,23 +412,23 @@
         var manualOffline = false;
         var timer;
 
-        this.getState = function(){
+        this.getState = function () {
             return online;
         }
-        this.setOffline = function(){
+        this.setOffline = function () {
             online = false;
-            manualOffline= true;
+            manualOffline = true;
             $rootScope.$broadcast("hyphenOffline");
         };
 
-        this.setOnline = function(){
+        this.setOnline = function () {
             manualOffline = false;
             online = true;
             $rootScope.$broadcast("hyphenOnline");
         };
 
         window.addEventListener('online', function () {
-            if(!manualOffline) {
+            if (!manualOffline) {
                 timer = $timeout(function () {
                     online = true;
                     $rootScope.$broadcast("hyphenOnline");
@@ -433,8 +437,8 @@
         });
 
         window.addEventListener('offline', function () {
-            if(!manualOffline) {
-                if(timer){
+            if (!manualOffline) {
+                if (timer) {
                     $timeout.cancel(timer);
                 }
                 $timeout(function () {
@@ -764,7 +768,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
         this.key = key;
         this.data = [];
         var self = this;
-
+        this.sorted = false;
         if (model.indexes) {
             Object.keys(model.indexes).forEach(function (key) {
                 self["getBy" + model.indexes[key]] = function (id) {
@@ -798,7 +802,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
     var clearIndexes = function () {
         var self = this;
-        if(self.model.indexes) {
+        if (self.model.indexes) {
             Object.keys(self.model.indexes).forEach(function (key) {
                 self["index" + self.model.indexes[key]] = null;
             });
@@ -807,7 +811,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
     var clearGroups = function () {
         var self = this;
-        if(self.model.groups) {
+        if (self.model.groups) {
             Object.keys(self.model.groups).forEach(function (key) {
                 self["group" + self.model.groups[key]] = null;
             });
@@ -815,9 +819,32 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
     };
 
     HyphenDataModel.prototype.getData = function () {
-        return _(this.data).filter(function (el) {
-            return el.action !== "deleted";
-        });
+        var self = this;
+
+        if (self.model.sort && !self.sorted) {
+            this.data = this.data = _(this.data).sortBy(function (ob) {
+                if (self.model.sort.desc) {
+                    if (ob[self.model.sort.desc]) {
+                        return ob[self.model.sort.desc].toLowerCase();
+                    } else {
+                        return ob[self.model.sort.desc];
+                    }
+                }
+                if (self.model.sort.asc) {
+                    if (ob[self.model.sort.asc]) {
+                        return ob[self.model.sort.asc].toLowerCase();
+                    } else {
+                        return ob[self.model.sort.asc];
+                    }
+                }
+            });
+            if (self.model.sort.desc) {
+                this.data = this.data.reverse();
+            }
+            self.sorted = true;
+            // console.log(this.data)
+        }
+        return this.data;
     };
 
     HyphenDataModel.prototype.where = function (condition) {
@@ -857,6 +884,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
         clearIndexes.call(this);
         clearGroups.call(this);
+        self.sorted = false;
 
     };
 
@@ -901,10 +929,12 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
         clearIndexes.call(this);
         clearGroups.call(this);
+        self.sorted = false;
     };
 
     return HyphenDataModel;
-}]);
+}])
+;
 /**
  * Created by blazejgrzelinski on 25/11/15.
  */
@@ -917,46 +947,37 @@ jsHyphen.factory('HyphenCallBase', ['$http', function ($http) {
     };
 
     HyphenCallBase.prototype.urlParser = function (url, params) {
-        var parameters = Array.isArray(params) ? params : [params];
-        var segments = url.split("/");
-        var paramCounter = 0;
-        _(segments).each(function (seg, index) {
-            if (seg.indexOf(":") !== -1) {
-                segments[index] = parameters[paramCounter];
-                paramCounter++;
-            }
-        });
 
-        return segments.join("/");
+        for (var property in params) {
+            url = url.replace(":" + property, params[property]);
+        }
+        return url;
     };
 
-    var strEndsWith = function(str, suffix) {
-        return str.match(suffix+"$")===suffix;
+    var strEndsWith = function (str, suffix) {
+        return str.match(suffix + "$") === suffix;
     };
 
     HyphenCallBase.prototype.invoke = function (params) {
         this.config = angular.copy(this.httpOptions);
         var url = "";
-        if(!strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
-            url=  this.hyphenConfiguration.baseUrl ;
+        if (!strEndsWith(this.hyphenConfiguration.baseUrl, "/")) {
+            url = this.hyphenConfiguration.baseUrl;
         }
 
-        if(_.isArray(params)) {
+        if (params) {
             this.config.url = url + this.urlParser(this.httpOptions.url, params);
-        }else{
-            if(params) {
-                this.config.url = url + this.httpOptions.url + "?" + params;
-            }else {
-                this.config.url = url + this.httpOptions.url;
-            }
+        } else {
+            this.config.url = url + this.httpOptions.url;
         }
+
         this.config.data = this.dataSet;
         if (this.hyphenConfiguration.requestInterceptor) {
             this.config = this.hyphenConfiguration.requestInterceptor(this.config);
         }
 
         //hyphen cache property is the same like the native $http cache so it prevent from making http request
-        this.config.cache=false;
+        this.config.cache = false;
         return this.$http(this.config);
     };
 

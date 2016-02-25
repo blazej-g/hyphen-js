@@ -60,18 +60,26 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
         if (self.model.sort && !self.sorted) {
             this.data = this.data = _(this.data).sortBy(function (ob) {
-                if(self.model.sort.desc) {
-                    return ob[self.model.sort.desc];
+                if (self.model.sort.desc) {
+                    if (ob[self.model.sort.desc]) {
+                        return ob[self.model.sort.desc].toLowerCase();
+                    } else {
+                        return ob[self.model.sort.desc];
+                    }
                 }
-                if(self.model.sort.asc) {
-                    return ob[self.model.sort.asc];
+                if (self.model.sort.asc) {
+                    if (ob[self.model.sort.asc]) {
+                        return ob[self.model.sort.asc].toLowerCase();
+                    } else {
+                        return ob[self.model.sort.asc];
+                    }
                 }
             });
             if (self.model.sort.desc) {
                 this.data = this.data.reverse();
             }
             self.sorted = true;
-           // console.log(this.data)
+            // console.log(this.data)
         }
         return this.data;
     };
@@ -158,7 +166,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
 
         clearIndexes.call(this);
         clearGroups.call(this);
-        self.sorted= false;
+        self.sorted = false;
     };
 
     return HyphenDataModel;

@@ -293,9 +293,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                     var promise;
                     //initialize promise for every call!!!
                     var actionPromise = $q.defer();
-
-                    var args = Array.prototype.slice.call(arguments);
-                    var cacheItem = rest.name + modelData.model + args.join("");
+                    var cacheItem = rest.name + modelData.model + JSON.stringify(params);
 
                     if (OfflineOnlineService.getState()) {
                         if (!CacheService.isCached(cacheItem)) {
