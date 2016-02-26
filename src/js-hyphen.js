@@ -169,7 +169,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                             });
                             break;
                         case "updated":
-                            promise = entitySyncModel.update(record).then(function () {
+                            promise = entitySyncModel.update(record).then(function (result) {
                                 HyphenIndexDb.deleteRecord(syncStore.model.name, id);
                                 $rootScope.$broadcast("syncRecordSuccess", result);
                             }, function (error) {

@@ -1,7 +1,7 @@
 {
   "name": "hyphen-js",
-  "version": "0.0.194",
-  "description": "Hyphen Js - Angular application data layer",
+  "version": "0.0.198",
+  "description": "Hyphen Js - Generic Angular application data layer",
   "homepage": "",
   "author": "Blazej Grzelinski",
   "scripts": {
@@ -11,6 +11,7 @@
   "devDependencies": {
     "angular": "^1.3.15",
     "angular-mocks": "^1.4.8",
+    "grunt": "^0.4.5",
     "grunt-bower": "*",
     "grunt-bower-task": "*",
     "grunt-cli": ">= 0.1.7",
@@ -32,8 +33,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/blazej-g/hyphen-js.git"
+    "url": "https://github.com/blazejgrzelinski/hyphen-js.git"
   },
+  "main": "dist/hyphen-js.js",
+  "browser": "dist/hyphen-js.js",
   "keywords": [
     "angular",
     "datalayer",

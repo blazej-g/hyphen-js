@@ -1,6 +1,6 @@
 /**
- * Hyphen Js - Angular application data layer
- * @version v0.0.193 - 2016-02-25 * @link 
+ * Hyphen Js - Generic Angular application data layer
+ * @version v0.0.197 - 2016-02-26 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -174,7 +174,7 @@
                             });
                             break;
                         case "updated":
-                            promise = entitySyncModel.update(record).then(function () {
+                            promise = entitySyncModel.update(record).then(function (result) {
                                 HyphenIndexDb.deleteRecord(syncStore.model.name, id);
                                 $rootScope.$broadcast("syncRecordSuccess", result);
                             }, function (error) {
