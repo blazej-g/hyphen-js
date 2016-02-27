@@ -15,3 +15,4 @@ With HyphenJs Angular application can works in offline mode without any differen
 Demo code [deployed to git hub](https://github.com/blazej-g/hyphen-js-example)
 
 #Table of contents
+Comming soon
