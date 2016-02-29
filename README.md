@@ -1,18 +1,26 @@
 #HyphenJs
 
+HyphenJs is Angular module for easy implementing restfull api and building data model with offline mode support.
 
-HyphenJS is an AngularJS module that handle restful api queries and create application data model with
-full support for offline mode and data synchronization. 
-Thanks to HyphenJs developer can create with minimum amount of code application which can:
- - communicate with server (send, recieve data) using api queries when browser is in online mode
- - store all changes (new, updated or deleted records) in the IndexedDB when browser is in offline mode
- - synchronize all the changes from offline mode with the server when browser return to online mode.
- 
+* **Robust Configuration:** With HyphenJs you can configure all your api routes in just a couple of minutes.
+* **DataModel:** HyphenJs organize all your client side data, so need to build model by your own!. HyphenJs fascade the promise and http layer so no need to pollute your controllers with promise.then(function(...
+* **Agility and speed:** With HyphenJs you can define any number of indexes for each model, so you are always 100% sure that it will not slow down your app when you bind it using angular.
+* **Transparency:** HyphenJs makes that your app can work in offline mode as well as in online mode.
+* **Synchronization:** When your app return to online mode HyphenJs will synchronize all the entities created in offline mode.
 
-With HyphenJs Angular application can works in offline mode without any difference in comparision to online mode, developer do not need to handle in the controllers any state and all the REST api methods can be used in completly transparent way.
+### Examples
 
-**Basic live demo, [live demo deployed to heroku](https://hyphen-js.herokuapp.com/#/sign_in).**
-Demo code [deployed to git hub](https://github.com/blazej-g/hyphen-js-example)
+Basic live demo, [deployed to heroku](https://hyphen-js.herokuapp.com/#/sign_in) (this app allow user to register, sign in and create additionall users, still under construction but you can see HyphenJs In action)
 
-#Table of contents
-Comming soon
+[Basic live demo code ](https://github.com/blazej-g/hyphen-js-example)
+
+###Installation
+Install HyphenJs using NPM run:
+npm install hyphen-js
+
+or download source code with minified version from git hub:
+[source code] (https://github.com/blazejgrzelinski/hyphen-js)
+
+###Configuration and setup
+
+
