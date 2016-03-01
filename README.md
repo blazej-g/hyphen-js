@@ -3,7 +3,7 @@
 HyphenJs is Angular module for easy implementing restfull api and building data model with offline mode support.
 
 * **Robust Configuration:** With HyphenJs you can configure all your api routes in just a couple of minutes but you still need to spend some time on defining addtional stuff. HyphenJs is made to support build process of not trivial apps, to works with large amount of data and substantial complexity where not having data model become developers nightmare.
-* **DataModel:** HyphenJs organize all your client side data, so need to build model by your own!. HyphenJs fascade the promise and http layer. Your controllers remain clear and from from http promises handling.
+* **DataModel:** HyphenJs organize all your client side data, so no need to build model by your own!. HyphenJs fascade the promise and http layer. Your controllers remain clear.
 * **Agility and speed:** With HyphenJs you can define any number of indexes for each model, so you are always 100% sure that it will not slow down your app when you bind it using angular.
 * **Transparency:** HyphenJs makes that your app can work in offline mode as well as in online mode.
 * **Synchronization:** When your app return to online mode HyphenJs will synchronize all the entities created in offline mode.
