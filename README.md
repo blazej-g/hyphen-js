@@ -2,8 +2,8 @@
 
 HyphenJs is Angular module for easy implementing restfull api and building data model with offline mode support.
 
-* **Robust Configuration:** With HyphenJs you can configure all your api routes in just a couple of minutes.
-* **DataModel:** HyphenJs organize all your client side data, so need to build model by your own!. HyphenJs fascade the promise and http layer so no need to pollute your controllers with promise.then(function(...
+* **Robust Configuration:** With HyphenJs you can configure all your api routes in just a couple of minutes but you still need to spend some time on defining addtional stuff. HyphenJs is made to support build process of not trivial apps, to works with large amount of data and substantial complexity where not having data model become developers nightmare.
+* **DataModel:** HyphenJs organize all your client side data, so need to build model by your own!. HyphenJs fascade the promise and http layer. Your controllers remain clear and from from http promises handling.
 * **Agility and speed:** With HyphenJs you can define any number of indexes for each model, so you are always 100% sure that it will not slow down your app when you bind it using angular.
 * **Transparency:** HyphenJs makes that your app can work in offline mode as well as in online mode.
 * **Synchronization:** When your app return to online mode HyphenJs will synchronize all the entities created in offline mode.
@@ -48,7 +48,7 @@ function ($rootScope, Hyphen, Environments, $state) {
         {
             model: "Users",
             priority: 0,
-            sync: true,
+            sync: false,
             key: "_id",
             rest: [
                 {name: "update", url: "/users/update", method: "put"},
@@ -61,12 +61,11 @@ function ($rootScope, Hyphen, Environments, $state) {
         {
             model: "Projects",
             key: "_id",
-            sync: true,
+            sync: false,
             priority: 1,
             rest: [
                 {name: "create", url: "/projects/create", method: "post"},
                 {name: "getAll", url: "/projects", method: "get", cache: true},
-                {name: "removeAll", url: "/projects/remove_all", method: "post", action: "delete"},
             ],
 
         },
@@ -86,8 +85,124 @@ function ($rootScope, Hyphen, Environments, $state) {
 * name  - name of the method
 * url - api call path
 * method - http method type
-* action - change the default method behaviour which is add or update for GET, POST and PUT
 
 
 
+###Initializing HyphenJs
+
+```javascript
+
+exampleApp.run(['$rootScope', 'Hyphen', 'Environments', '$state',
+function ($rootScope, Hyphen, Environments, $state) {
+    var timestamp = new Date / 1e3 | 0;
+    var configuration = {
+        model: dataModel,
+        baseUrl: Environments.settings.api,
+        dbVersion: timestamp * 1000,
+        dbName: 'JsHyphenDb',
+        requestInterceptor: function (config) {
+        },
+        responseInterceptor: function (data, config, store) {
+            return data;
+        },
+    }
+    Hyphen.initialize(configuration);
+}]);
+```
+
+###Initializing  HyphenJs IndexedDb database
+Please be sure that you initiazlize IndexedDb when the current user is authenticated and has rights to perform api call. In the process of DB Initialization HyphenJs will try to sybchronize your offline data using api calls.
+
+```javascript
+ Hyphen.initializeDb("unique_identifier");
+```
+
+ `unique_identifier` - passed as parameter to function initializeDb ensure that db will be created for every user with unique id and offline data will be not messed up between users.
+ 
+ 
+###Defining model entities
+
+ 
+ ```javascript
+ /* Users model */
+ jsHyphen.factory('Users', ['Hyphen', function () {
+
+    var User = function (data) {
+      
+    }
+
+    User.prototype.getFullName = function () {
+        return this.user_first_name + " " + this.user_last_name;
+    }
+
+    User.indexes =
+    {
+        _id: "Id",
+        user_first_name: "FirstName"
+    }
+
+    User.groups =
+    {
+        user_first_name: "FirstName"
+    }
+
+    User.sort =
+    {
+        asc : "created_at"
+    }
+    }]);
+    
+    
+    /*Projects model*/
+    jsHyphen.factory('Projects', [function () {
+    var Project = function () {}
+
+    Project.indexes =
+    {
+        _id : "id"
+    }
+    }]);
+ 
+ ```
+ 
+###Using Hyphen.api and Hyphen.dataModel
+
+ ```javascript
+jsHyphen.controller('UsersCtrl', ['$scope', 'Hyphen', function ($scope, Hyphen) {
+    $scope.Hyphen = Hyphen;
+     //call api method which load all users
+     Hyphen.Projects.api.getAll.call();
+        
+    //create new user using api call
+    var user = {
+        user_email: "test@gmail.com",
+        user_first_name: "blazej",
+        user_last_name: "grzelinski",
+        user_password: "testpass"
+     }
+    Hyphen.Users.api.create.data = user;
+    var p = Hyphen.Users.api.create.call();
+      
+        
+    //get all users from users data model
+    Hyphen.Users.dataModel.getAll();
+    
+    //get one user using index created on Id proprty
+    Hyphen.Users.dataModel.getById(user_id);
+        
+        
+    }]);
+```
+
+###Using Hyphen.dataModel in Angular template
+
+```html
+<div ng-controller="UsersCtrl">
+        <span>Displays all users</span>
+        <p>{{ Hyphen.Users.dataModel.getAll()}}</p>
+        
+        <span>Display one user</span>
+        <p>{{ Hyphen.Users.dataModel.getById(user_id)}}</p>
+</div>
+```
 
