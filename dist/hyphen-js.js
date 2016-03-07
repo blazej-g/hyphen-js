@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.203 - 2016-03-07 * @link 
+ * @version v0.0.206 - 2016-03-07 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -75,6 +75,16 @@
                                 if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
                                     HyphenIndexDb.createStore(st.name, st.key);
                                 } else {
+                                    //the only one way to not use key path on stores anymore....
+                                    if(event.target.transaction.objectStore(st.name).keyPath){
+                                        var result= HyphenIndexDb.removeStore(st.name);
+                                        result.onsuccess = function (event) {
+                                            HyphenIndexDb.createStore(st.name, st.key);
+                                        }
+                                        request.onerror = function (event) {
+                                            console.log(event);
+                                        }
+                                    }
                                     console.log("Store " + st + "already exist and will be not created again");
                                 }
                             });

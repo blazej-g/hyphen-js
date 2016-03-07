@@ -70,6 +70,20 @@ var jsHyphen = angular.module('jsHyphen', []);
                                 if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
                                     HyphenIndexDb.createStore(st.name, st.key);
                                 } else {
+                                    //recreate object stores if the key path is defined
+                                    if(event.target.transaction.objectStore(st.name).keyPath){
+                                        var result = HyphenIndexDb.removeStore(st.name);
+                                        if(result) {
+                                            result.onsuccess = function (event) {
+                                                HyphenIndexDb.createStore(st.name, st.key);
+                                            }
+                                            request.onerror = function (event) {
+                                                console.log(event);
+                                            }
+                                        }else{
+                                            HyphenIndexDb.createStore(st.name, st.key);
+                                        }
+                                    }
                                     console.log("Store " + st + "already exist and will be not created again");
                                 }
                             });
