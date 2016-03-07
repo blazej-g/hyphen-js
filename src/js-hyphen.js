@@ -16,6 +16,7 @@ var jsHyphen = angular.module('jsHyphen', []);
                 var hyphenConfiguration;
                 var hyphenIndexDb;
                 var stores = [];
+                var storesToRemove = [];
                 var hyphenSynchronizer;
 
                 service.initialize = function (configuration) {
@@ -25,15 +26,19 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                     configuration.model.forEach(function (entity) {
                         service[entity.model] = new BasicModel(entity, configuration);
-                        if (entity.sync) {
-                            stores.push({
+                            var str = {
                                 name: entity.model,
                                 key: entity.key,
                                 priority: entity.priority,
                                 sync: entity.sync,
                                 foreignKeys: entity.foreignKeys
-                            });
-                        }
+                            };
+
+                            if (entity.sync) {
+                                stores.push(str);
+                            } else {
+                                storesToRemove.push(str);
+                            }
                     });
                 };
 
@@ -67,7 +72,13 @@ var jsHyphen = angular.module('jsHyphen', []);
                                 } else {
                                     console.log("Store " + st + "already exist and will be not created again");
                                 }
-                            })
+                            });
+
+                            _(storesToRemove).each(function (st) {
+                                if (_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
+                                    HyphenIndexDb.removeStore(st.name);
+                                }
+                            });
                         });
 
                         //event called from indexed db
@@ -281,7 +292,7 @@ var jsHyphen = angular.module('jsHyphen', []);
             //entities public properties
             this.dataModel = dataStore.stores[modelData.model];
             this.api = {};
-
+            this.api.loading = 0;
             var apiCallFactory = new ApiCallFactory();
             _(modelData.rest).each(function (rest) {
                 var self = this;
@@ -300,9 +311,11 @@ var jsHyphen = angular.module('jsHyphen', []);
                             apiCall.dataSet = self.api[rest.name].data;
                             promise = apiCall.invoke.call(apiCall, params);
                             self.api[rest.name].loading++;
+                            self.api.loading++;
                             self.api[rest.name].loaded = false;
                             promise.then(function (result) {
                                 self.api[rest.name].loading--;
+                                self.api.loading--;
                                 self.api[rest.name].loaded = true;
 
                                 actionPromise.resolve(angular.copy(result));
@@ -313,6 +326,7 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                             }, function (reason) {
                                 self.api[rest.name].loading--;
+                                self.api.loading--;
                                 actionPromise.reject(reason);
                             });
                         } else {

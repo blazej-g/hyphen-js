@@ -110,10 +110,14 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
 
     IndexedDbCommands.prototype.createStore = function (store, key) {
         var request = this.db.createObjectStore(store, {
-            autoIncrement: false,
-            keyPath: key
+            autoIncrement: false
         });
 
+        return request;
+    }
+
+    IndexedDbCommands.prototype.removeStore = function (store) {
+        var request = this.db.deleteObjectStore(store);
         return request;
     }
 
@@ -171,7 +175,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
     IndexedDbCommands.prototype.addRecord = function (data, store) {
         var transaction = this.db.transaction(store, "readwrite");
         var storeObject = transaction.objectStore(store);
-        storeObject.add(data);
+        storeObject.add({data: data}, data._id);
     }
 
     IndexedDbCommands.prototype.addOrUpdateRecord = function (record, store, id) {
@@ -245,8 +249,12 @@ jsHyphen.factory("HyphenIndexDb", ['IndexedDbCommands', function (IndexedDbComma
         return indexedDb.getStoreData(store);
     }
 
-    HyphenIndexDb.createStores = function (stores) {
+    HyphenIndexDb.createStoremoveStoreres = function (stores) {
         return indexedDb.createStores(stores);
+    }
+
+    HyphenIndexDb.removeStore = function (stores) {
+        return indexedDb.removeStore(stores);
     }
 
     HyphenIndexDb.close = function () {

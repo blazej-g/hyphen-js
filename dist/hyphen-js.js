@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.199 - 2016-02-27 * @link 
+ * @version v0.0.202 - 2016-03-01 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -286,14 +286,14 @@
             //entities public properties
             this.dataModel = dataStore.stores[modelData.model];
             this.api = {};
-
+            this.api.loading = 0;
             var apiCallFactory = new ApiCallFactory();
             _(modelData.rest).each(function (rest) {
                 var self = this;
                 var apiCall = apiCallFactory.createApiCall(rest, configuration, modelData.model);
                 this.api[rest.name] = {};
                 self.api[rest.name].loading = 0;
-
+                
                 this.api[rest.name].call = function (params) {
                     var promise;
                     //initialize promise for every call!!!
@@ -305,9 +305,11 @@
                             apiCall.dataSet = self.api[rest.name].data;
                             promise = apiCall.invoke.call(apiCall, params);
                             self.api[rest.name].loading++;
+                            self.api.loading++;
                             self.api[rest.name].loaded = false;
                             promise.then(function (result) {
                                 self.api[rest.name].loading--;
+                                self.api.loading--;
                                 self.api[rest.name].loaded = true;
 
                                 actionPromise.resolve(angular.copy(result));
@@ -318,6 +320,7 @@
 
                             }, function (reason) {
                                 self.api[rest.name].loading--;
+                                self.api.loading--;
                                 actionPromise.reject(reason);
                             });
                         } else {
