@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.202 - 2016-03-01 * @link 
+ * @version v0.0.203 - 2016-03-07 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -21,6 +21,7 @@
                 var hyphenConfiguration;
                 var hyphenIndexDb;
                 var stores = [];
+                var storesToRemove = [];
                 var hyphenSynchronizer;
 
                 service.initialize = function (configuration) {
@@ -30,14 +31,18 @@
 
                     configuration.model.forEach(function (entity) {
                         service[entity.model] = new BasicModel(entity, configuration);
+                        var str = {
+                            name: entity.model,
+                            key: entity.key,
+                            priority: entity.priority,
+                            sync: entity.sync,
+                            foreignKeys: entity.foreignKeys
+                        };
+
                         if (entity.sync) {
-                            stores.push({
-                                name: entity.model,
-                                key: entity.key,
-                                priority: entity.priority,
-                                sync: entity.sync,
-                                foreignKeys: entity.foreignKeys
-                            });
+                            stores.push(str);
+                        } else {
+                            storesToRemove.push(str);
                         }
                     });
                 };
@@ -72,7 +77,13 @@
                                 } else {
                                     console.log("Store " + st + "already exist and will be not created again");
                                 }
-                            })
+                            });
+
+                            _(storesToRemove).each(function (st) {
+                                if (_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
+                                    HyphenIndexDb.removeStore(st.name);
+                                }
+                            });
                         });
 
                         //event called from indexed db
@@ -293,7 +304,7 @@
                 var apiCall = apiCallFactory.createApiCall(rest, configuration, modelData.model);
                 this.api[rest.name] = {};
                 self.api[rest.name].loading = 0;
-                
+
                 this.api[rest.name].call = function (params) {
                     var promise;
                     //initialize promise for every call!!!
@@ -572,10 +583,14 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
 
     IndexedDbCommands.prototype.createStore = function (store, key) {
         var request = this.db.createObjectStore(store, {
-            autoIncrement: false,
-            keyPath: key
+            autoIncrement: false
         });
 
+        return request;
+    }
+
+    IndexedDbCommands.prototype.removeStore = function (store) {
+        var request = this.db.deleteObjectStore(store);
         return request;
     }
 
@@ -630,10 +645,10 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
         return promise;
     }
 
-    IndexedDbCommands.prototype.addRecord = function (data, store) {
+    IndexedDbCommands.prototype.addRecord = function (data, store, id) {
         var transaction = this.db.transaction(store, "readwrite");
         var storeObject = transaction.objectStore(store);
-        storeObject.add(data);
+        storeObject.add(data, id);
     }
 
     IndexedDbCommands.prototype.addOrUpdateRecord = function (record, store, id) {
@@ -649,7 +664,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
             if (request.result) {
                 self.updateRecord(record, store, id);
             } else {
-                self.addRecord(record, store);
+                self.addRecord(record, store, id);
             }
         };
     }
@@ -658,7 +673,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
         var objectStore = this.db.transaction(store, "readwrite").objectStore(store);
         var request = objectStore.get(id);
         request.onsuccess = function () {
-            objectStore.put(data);
+            objectStore.put(data, id);
         };
     }
 
@@ -707,16 +722,20 @@ jsHyphen.factory("HyphenIndexDb", ['IndexedDbCommands', function (IndexedDbComma
         return indexedDb.getStoreData(store);
     }
 
-    HyphenIndexDb.createStores = function (stores) {
+    HyphenIndexDb.createStoremoveStoreres = function (stores) {
         return indexedDb.createStores(stores);
+    }
+
+    HyphenIndexDb.removeStore = function (stores) {
+        return indexedDb.removeStore(stores);
     }
 
     HyphenIndexDb.close = function () {
         return indexedDb.closeDb();
     }
 
-    HyphenIndexDb.addRecordToStore = function (data, store) {
-        return indexedDb.addRecord(data, store);
+    HyphenIndexDb.addRecordToStore = function (data, store, id) {
+        return indexedDb.addRecord(data, store, id);
     }
     HyphenIndexDb.updateRecordStore = function (data, store, id) {
         return indexedDb.updateRecord(data, store, id);
@@ -923,7 +942,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
                 //create
                 if (!OfflineOnlineService.getState() && !preventSync) {
                     record.action = "new";
-                    HyphenIndexDb.addRecordToStore(record, self.modelName);
+                    HyphenIndexDb.addRecordToStore(record, self.modelName, record[key]);
                 }
                 record = _.extend(new self.model(record), record);
                 self.data.push(record);

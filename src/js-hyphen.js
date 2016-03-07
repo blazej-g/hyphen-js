@@ -26,19 +26,19 @@ var jsHyphen = angular.module('jsHyphen', []);
 
                     configuration.model.forEach(function (entity) {
                         service[entity.model] = new BasicModel(entity, configuration);
-                            var str = {
-                                name: entity.model,
-                                key: entity.key,
-                                priority: entity.priority,
-                                sync: entity.sync,
-                                foreignKeys: entity.foreignKeys
-                            };
+                        var str = {
+                            name: entity.model,
+                            key: entity.key,
+                            priority: entity.priority,
+                            sync: entity.sync,
+                            foreignKeys: entity.foreignKeys
+                        };
 
-                            if (entity.sync) {
-                                stores.push(str);
-                            } else {
-                                storesToRemove.push(str);
-                            }
+                        if (entity.sync) {
+                            stores.push(str);
+                        } else {
+                            storesToRemove.push(str);
+                        }
                     });
                 };
 

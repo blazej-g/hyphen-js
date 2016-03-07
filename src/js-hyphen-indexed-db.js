@@ -172,10 +172,10 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
         return promise;
     }
 
-    IndexedDbCommands.prototype.addRecord = function (data, store) {
+    IndexedDbCommands.prototype.addRecord = function (data, store, id) {
         var transaction = this.db.transaction(store, "readwrite");
         var storeObject = transaction.objectStore(store);
-        storeObject.add({data: data}, data._id);
+        storeObject.add(data, id);
     }
 
     IndexedDbCommands.prototype.addOrUpdateRecord = function (record, store, id) {
@@ -191,7 +191,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
             if (request.result) {
                 self.updateRecord(record, store, id);
             } else {
-                self.addRecord(record, store);
+                self.addRecord(record, store, id);
             }
         };
     }
@@ -200,7 +200,7 @@ jsHyphen.factory("IndexedDbCommands", ['$q', 'IndexedDbCommandBase', function ($
         var objectStore = this.db.transaction(store, "readwrite").objectStore(store);
         var request = objectStore.get(id);
         request.onsuccess = function () {
-            objectStore.put(data);
+            objectStore.put(data, id);
         };
     }
 
@@ -261,8 +261,8 @@ jsHyphen.factory("HyphenIndexDb", ['IndexedDbCommands', function (IndexedDbComma
         return indexedDb.closeDb();
     }
 
-    HyphenIndexDb.addRecordToStore = function (data, store) {
-        return indexedDb.addRecord(data, store);
+    HyphenIndexDb.addRecordToStore = function (data, store, id) {
+        return indexedDb.addRecord(data, store, id);
     }
     HyphenIndexDb.updateRecordStore = function (data, store, id) {
         return indexedDb.updateRecord(data, store, id);
