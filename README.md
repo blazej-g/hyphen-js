@@ -91,7 +91,7 @@ function ($rootScope, Hyphen, $state) {
 
 ```javascript
 
-exampleApp.run(['$rootScope', 'Hyphen', ', '$state',
+exampleApp.run(['$rootScope', 'Hyphen', '$state',
 function ($rootScope, Hyphen, $state) {
     var timestamp = new Date / 1e3 | 0;
     var configuration = {
