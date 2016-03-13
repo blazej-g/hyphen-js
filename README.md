@@ -41,7 +41,7 @@ var exampleApp = angular.module('exampleApp', ['jsHyphen']);
 
 ####Configure api calls
 ```javascript
-exampleApp.run(['$rootScope', 'Hyphen',', '$state',
+exampleApp.run(['$rootScope', 'Hyphen', '$state',
 function ($rootScope, Hyphen, $state) {
 
     var dataModel = [
