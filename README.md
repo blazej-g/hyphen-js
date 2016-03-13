@@ -41,8 +41,8 @@ var exampleApp = angular.module('exampleApp', ['jsHyphen']);
 
 ####Configure api calls
 ```javascript
-exampleApp.run(['$rootScope', 'Hyphen', 'Environments', '$state',
-function ($rootScope, Hyphen, Environments, $state) {
+exampleApp.run(['$rootScope', 'Hyphen',', '$state',
+function ($rootScope, Hyphen, $state) {
 
     var dataModel = [
         {
@@ -55,7 +55,6 @@ function ($rootScope, Hyphen, Environments, $state) {
                 {name: "create", url: "/users/create", method: "post"},
                 {name: "getAll", url: "/users", method: "get", cache: true},
                 {name: "delete", url: "/users/:id", method: "delete"},
-                {name: "getOne", url: "/users/:id", method: "get"},
             ],
         },
         {
@@ -92,8 +91,8 @@ function ($rootScope, Hyphen, Environments, $state) {
 
 ```javascript
 
-exampleApp.run(['$rootScope', 'Hyphen', 'Environments', '$state',
-function ($rootScope, Hyphen, Environments, $state) {
+exampleApp.run(['$rootScope', 'Hyphen', ', '$state',
+function ($rootScope, Hyphen, $state) {
     var timestamp = new Date / 1e3 | 0;
     var configuration = {
         model: dataModel,
