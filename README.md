@@ -9,6 +9,7 @@ HyphenJs, an Angular module made to simplify data model creation with ability to
 * **Synchronization:** When your app return to online mode HyphenJs will synchronize all the entities created in offline mode.
 
 ### Examples
+[Simple ToDos app example](https://plnkr.co/edit/YvUW7n?p=preview)
 
 Basic live demo, [deployed to heroku](https://hyphen-js.herokuapp.com/#/sign_in) (this app allow user to register, sign in and create additionall users, still under construction but you can see HyphenJs In action)
 
@@ -204,4 +205,6 @@ jsHyphen.controller('UsersCtrl', ['$scope', 'Hyphen', function ($scope, Hyphen) 
         <p>{{ Hyphen.Users.dataModel.getById(user_id)}}</p>
 </div>
 ```
+
+
 
