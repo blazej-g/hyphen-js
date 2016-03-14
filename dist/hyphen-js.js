@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.245 - 2016-03-15 * @link 
+ * @version v0.0.261 - 2016-03-15 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -69,8 +69,7 @@
                     }
                     if (!HyphenIndexDb.isInitialized()) {
                         var dbName = this.configuration.dbName + identifier;
-                        var version =(new Date / 1e5 | 0) * 10;
-                        hyphenIndexDb = new HyphenIndexDb(dbName, version, stores, identifier);
+                        hyphenIndexDb = new HyphenIndexDb(dbName, this.configuration.dbVersion, stores, identifier);
                         HyphenIndexDb.upgradeEvent(function (event) {
                             _(stores).each(function (st) {
                                 if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {

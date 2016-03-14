@@ -69,7 +69,7 @@ var timestamp = new Date / 1e3 | 0;
 var configuration = {
     model: dataModel,
     baseUrl: "",
-    dbVersion: timestamp * 1000,
+    dbVersion:  _.now(),
     dbName: 'JsHyphenDb',
     requestInterceptor: function (config) {
         //intercept all request and provide authorization token
