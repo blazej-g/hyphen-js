@@ -65,11 +65,16 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   color:#222;
-  margin:0 0 20px;
+  margin:0 0 10px;
+}
+
+h3, h4 {
+  padding-top: 70px;
+  margin-top: -70px;
 }
 
 p, ul, ol, table, pre, dl {
-  margin:0 0 20px;
+  margin:10px 0 10px;
 }
 
 h1, h2, h3 {
@@ -201,6 +206,11 @@ header ul a {
   height:34px;
 }
 
+header a {
+  padding-bottom: 3px;
+  display: inline-block;
+}
+
 header ul a:hover {
   color:#999;
 }
@@ -252,6 +262,13 @@ footer {
 
 footer a {
   color: #c0494a;
+}
+.color-link {
+  color: #c0494a;
+}
+
+.color-link:hover {
+  text-decoration: underline;
 }
 
 @media print, screen and (max-width: 960px) {
@@ -395,7 +412,7 @@ footer a {
 }
 
 .nav-main .nav-home {
-  color: #00d8ff;
+  color: #ff85ae;
   font-size: 24px;
   line-height: 50px;
   height: 50px;
@@ -414,4 +431,9 @@ footer a {
 
 .nav-main li {
   display: inline
+}
+
+.highlight {
+  color: #333333;
+  background: #f8f5ec;
 }
