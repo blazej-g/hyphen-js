@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.210 - 2016-03-09 * @link 
+ * @version v0.0.215 - 2016-03-14 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -69,7 +69,7 @@
                     }
                     if (!HyphenIndexDb.isInitialized()) {
                         var dbName = this.configuration.dbName + identifier;
-                        hyphenIndexDb = new HyphenIndexDb(dbName, this.configuration.dbVersion, stores, identifier);
+                        hyphenIndexDb = new HyphenIndexDb(dbName, (new Date / 1e3 | 0) * 100, stores, identifier);
                         HyphenIndexDb.upgradeEvent(function (event) {
                             _(stores).each(function (st) {
                                 if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
@@ -826,7 +826,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
         var data = Array.isArray(addData) ? addData : [addData];
 
         _(data).each(function (record) {
-            if (!record[key]) {
+            if (!record[key] && record[key]!=0) {
                 throw new Error("Key is not defined for '" + self.modelName + "', record cannot be added. Record" + record);
             }
 
