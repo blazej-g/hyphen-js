@@ -7,7 +7,7 @@ describe("Hyphen JS", function () {
     //beforeEach(function (done) {
     beforeEach(inject(function ($injector, Hyphen, _$rootScope_) {
         Hyphen.initialize(configuration);
-        Hyphen.initializeDb(1);
+
         $httpBackend = $injector.get('$httpBackend');
         $rootScope = _$rootScope_;
         spyOn($rootScope, '$broadcast');
@@ -47,6 +47,7 @@ describe("Hyphen JS", function () {
 
     it("should create new user in offline mode", function (done) {
         inject(function (Hyphen) {
+            Hyphen.initializeDb(1);
             Hyphen.switchToOffline();
             setTimeout(function () {
                 Hyphen.Users.api.create.data = {user_first_name: "blazej"};
@@ -60,6 +61,7 @@ describe("Hyphen JS", function () {
 
     it("should create two new user in offline mode", function (done) {
         inject(function (Hyphen) {
+            Hyphen.initializeDb(2);
             Hyphen.switchToOffline();
             setTimeout(function () {
                 Hyphen.Users.api.create.data = {user_first_name: "blazej"};
@@ -75,6 +77,7 @@ describe("Hyphen JS", function () {
 
     it("should create two new user in offline mode", function (done) {
         inject(function (Hyphen) {
+            Hyphen.initializeDb(3);
             Hyphen.switchToOffline();
             setTimeout(function () {
                 Hyphen.Users.api.create.data = {user_first_name: "blazej"};
@@ -93,6 +96,7 @@ describe("Hyphen JS", function () {
 
     it("should delete user with name 'blazej'", function (done) {
         inject(function (Hyphen) {
+            Hyphen.initializeDb(4);
             Hyphen.switchToOffline();
             setTimeout(function () {
                 Hyphen.Users.api.create.data = {user_first_name: "blazej"};
@@ -115,6 +119,7 @@ describe("Hyphen JS", function () {
 
     it("should update user with name 'blazej' to new name 'gerard", function (done) {
         inject(function (Hyphen) {
+            Hyphen.initializeDb(5);
             Hyphen.switchToOffline();
             setTimeout(function () {
                 Hyphen.Users.api.create.data = {user_first_name: "blazej"};
