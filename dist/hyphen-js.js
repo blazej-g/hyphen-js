@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.281 - 2016-03-15 * @link 
+ * @version v0.0.282 - 2016-03-16 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -773,7 +773,7 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
         var data = Array.isArray(addData) ? addData : [addData];
 
         _(data).each(function (record) {
-            if (!record[key]) {
+            if (!record[key] && record[key]!=0) {
                 throw new Error("Key is not defined for '" + self.modelName + "', record cannot be added. Record" + record);
             }
 
