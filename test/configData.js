@@ -5,16 +5,16 @@ var dataModel = [
         key: "_id",
         sync:true,
         rest: [
-            {name: "signIn", url: "/users/login", method: "post", processResponse: false, offline: true},
-            {name: "update", url: "/users/update", method: "put", offline: true},
-            {name: "create", url: "/users/create", method: "post", offline: true},
-            {name: "getAll", url: "/users", method: "get", offline: true},
-            {name: "delete", url: "/users/:id", method: "delete", offline: true},
-            {name: "getOne", url: "/users/:id", method: "get", offline: true},
-            {name: "getUserComplexParams", url: "/users/:userId/project/:projectId?name=:firstName&age=:age", method: "get", offline: true},
-            {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get", offline: true},
-            {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get", offline: true},
-            {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete", offline: true},
+            {name: "signIn", url: "/users/login", method: "post", processResponse: false, offline:true },
+            {name: "update", url: "/users/update", method: "put", offline:true},
+            {name: "create", url: "/users/create", method: "post", offline:true},
+            {name: "getAll", url: "/users", method: "get", offline:true},
+            {name: "delete", url: "/users/:id", method: "delete", offline:true},
+            {name: "getOne", url: "/users/:id", method: "get", offline:true},
+            {name: "getUserComplexParams", url: "/users/:userId/project/:projectId?name=:firstName&age=:age", method: "get"},
+            {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get"},
+            {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get"},
+            {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
             {
                 name: "getUserProjects",
                 url: "/users/user_projects",
@@ -64,13 +64,11 @@ var user3 = {
     user_password: "star_password"
 };
 
-var timestamp = new Date / 1e3 | 0;
-
 var configuration = {
     model: dataModel,
     baseUrl: "",
-    dbVersion:  _.now(),
-    dbName: 'JsHyphenDb',
+    dbVersion: 1,
+    dbName: 'JsHyphenTestDb',
     requestInterceptor: function (config) {
         //intercept all request and provide authorization token
         var token = sessionStorage.getItem("token");

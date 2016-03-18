@@ -12,6 +12,7 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
         }else{
             request = indexedDB.open(name);
         }
+
         request.onsuccess = function (event) {
             HyphenIndexDb.db = event.target.result;
             if (self.openEvent) {
@@ -19,7 +20,7 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
             }
         }
         request.onerror = function (event) {
-            console.log(event);
+                console.log(event);
         };
 
         request.onupgradeneeded = function (event) {

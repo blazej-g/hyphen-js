@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.283 - 2016-03-16 * @link 
+ * @version v0.0.285 - 2016-03-18 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -69,7 +69,7 @@
                     }
                     if (!HyphenIndexDb.isInitialized()) {
                         var dbName = this.configuration.dbName + identifier;
-                        hyphenIndexDb = new HyphenIndexDb(dbName, (new Date / 1e3 | 0) * 100, stores, identifier);
+                        hyphenIndexDb = new HyphenIndexDb(dbName,  this.configuration.dbVersion, stores, identifier);
                         hyphenIndexDb.upgradeEvent(function (event) {
                             _(stores).each(function (st) {
                                 if (!_(event.target.transaction.db.objectStoreNames).contains(st.name)) {
@@ -368,6 +368,7 @@
                             }else{
                                 var d={data: self.api[rest.name].data, warning: "offline_not_supported", params: params, config: rest};
                                 actionPromise.resolve(d);
+                                console.log(d);
                                 $rootScope.$broadcast("onNotSupportedMethodCall", d);
                             }
                         }
@@ -504,6 +505,7 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
         }else{
             request = indexedDB.open(name);
         }
+
         request.onsuccess = function (event) {
             HyphenIndexDb.db = event.target.result;
             if (self.openEvent) {
@@ -511,7 +513,7 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
             }
         }
         request.onerror = function (event) {
-            console.log(event);
+                console.log(event);
         };
 
         request.onupgradeneeded = function (event) {
