@@ -1,4 +1,4 @@
-jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
+jsHyphen.factory("HyphenIndexDb", ['$q', '$timeout', function ($q, $timeout) {
     var HyphenIndexDb = function (name, version) {
         var self = this;
         var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
@@ -57,6 +57,14 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
         var transaction = HyphenIndexDb.db.transaction(store, "readwrite");
         var storeObject = transaction.objectStore(store);
         storeObject.add(data, id);
+    }
+
+    HyphenIndexDb.updateRecord = function (data, store, id) {
+        var objectStore = this.db.transaction(store, "readwrite").objectStore(store);
+        var request = objectStore.get(id);
+        request.onsuccess = function () {
+            objectStore.put(data);
+        };
     }
 
     HyphenIndexDb.addOrUpdateRecord = function (record, store, id) {

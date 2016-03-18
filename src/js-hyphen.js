@@ -363,7 +363,6 @@ var jsHyphen = angular.module('jsHyphen', []);
                             }else{
                                 var d={data: self.api[rest.name].data, warning: "offline_not_supported", params: params, config: rest};
                                 actionPromise.resolve(d);
-                                console.log(d);
                                 $rootScope.$broadcast("onNotSupportedMethodCall", d);
                             }
                         }

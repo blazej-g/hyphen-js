@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.285 - 2016-03-18 * @link 
+ * @version v0.0.288 - 2016-03-18 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -368,7 +368,6 @@
                             }else{
                                 var d={data: self.api[rest.name].data, warning: "offline_not_supported", params: params, config: rest};
                                 actionPromise.resolve(d);
-                                console.log(d);
                                 $rootScope.$broadcast("onNotSupportedMethodCall", d);
                             }
                         }
@@ -491,7 +490,7 @@
 
 
 
-jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
+jsHyphen.factory("HyphenIndexDb", ['$q', '$timeout', function ($q, $timeout) {
     var HyphenIndexDb = function (name, version) {
         var self = this;
         var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
@@ -550,6 +549,14 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
         var transaction = HyphenIndexDb.db.transaction(store, "readwrite");
         var storeObject = transaction.objectStore(store);
         storeObject.add(data, id);
+    }
+
+    HyphenIndexDb.updateRecord = function (data, store, id) {
+        var objectStore = this.db.transaction(store, "readwrite").objectStore(store);
+        var request = objectStore.get(id);
+        request.onsuccess = function () {
+            objectStore.put(data);
+        };
     }
 
     HyphenIndexDb.addOrUpdateRecord = function (record, store, id) {
@@ -629,7 +636,7 @@ jsHyphen.factory("HyphenIndexDb", ['$q', function ($q) {
 
     return HyphenIndexDb;
 }]);
-jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', function (HyphenIndexDb, OfflineOnlineService) {
+jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', '$rootScope', function (HyphenIndexDb, OfflineOnlineService, $rootScope) {
     var HyphenDataModel = function (model, name, key) {
         this.model = model;
         this.modelName = name;
@@ -735,17 +742,28 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
                 });
             } else {
                 if (record.action === "new") {
-                    HyphenIndexDb.deleteRecord(self.modelName, record[key]);
+                    try {
+                        HyphenIndexDb.deleteRecord(self.modelName, record[key]);
+                        var delId = (record && record[key]) ? record[key] : record;
+                        this.data = _(this.data).filter(function (element) {
+                            return element[key] !== delId;
+                        });
+                    }catch(e){
+                        $rootScope.$broadcast("offlineActionFailure", e, record);
+                    }
                 }
                 else {
                     record.action = "deleted";
-                    HyphenIndexDb.addOrUpdateRecord(record, self.modelName, record[key]);
+                    try {
+                        HyphenIndexDb.addOrUpdateRecord(record, self.modelName, record[key]);
+                        var delId = (record && record[key]) ? record[key] : record;
+                        this.data = _(this.data).filter(function (element) {
+                            return element[key] !== delId;
+                        });
+                    }catch(e){
+                        $rootScope.$broadcast("offlineActionFailure", e, record);
+                    }
                 }
-
-                var delId = (record && record[key]) ? record[key] : record;
-                this.data = _(this.data).filter(function (element) {
-                    return element[key] !== delId;
-                });
 
             }
         }, this);
@@ -788,10 +806,17 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
                 //create
                 if (!OfflineOnlineService.getState() && !preventSync) {
                     record.action = "new";
-                    HyphenIndexDb.addRecordToStore(record, self.modelName, record[key]);
+                    try {
+                        HyphenIndexDb.addRecordToStore(record, self.modelName, record[key]);
+                        record = _.extend(new self.model(record), record);
+                        self.data.push(record);
+                    }catch(e){
+                        $rootScope.$broadcast("offlineActionFailure", e, record);
+                    }
+                }else {
+                    record = _.extend(new self.model(record), record);
+                    self.data.push(record);
                 }
-                record = _.extend(new self.model(record), record);
-                self.data.push(record);
             }
         });
 

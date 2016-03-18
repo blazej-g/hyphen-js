@@ -1,4 +1,4 @@
-jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', function (HyphenIndexDb, OfflineOnlineService) {
+jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', '$rootScope', function (HyphenIndexDb, OfflineOnlineService, $rootScope) {
     var HyphenDataModel = function (model, name, key) {
         this.model = model;
         this.modelName = name;
@@ -104,17 +104,28 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
                 });
             } else {
                 if (record.action === "new") {
-                    HyphenIndexDb.deleteRecord(self.modelName, record[key]);
+                    try {
+                        HyphenIndexDb.deleteRecord(self.modelName, record[key]);
+                        var delId = (record && record[key]) ? record[key] : record;
+                        this.data = _(this.data).filter(function (element) {
+                            return element[key] !== delId;
+                        });
+                    }catch(e){
+                        $rootScope.$broadcast("offlineActionFailure", e, record);
+                    }
                 }
                 else {
                     record.action = "deleted";
-                    HyphenIndexDb.addOrUpdateRecord(record, self.modelName, record[key]);
+                    try {
+                        HyphenIndexDb.addOrUpdateRecord(record, self.modelName, record[key]);
+                        var delId = (record && record[key]) ? record[key] : record;
+                        this.data = _(this.data).filter(function (element) {
+                            return element[key] !== delId;
+                        });
+                    }catch(e){
+                        $rootScope.$broadcast("offlineActionFailure", e, record);
+                    }
                 }
-
-                var delId = (record && record[key]) ? record[key] : record;
-                this.data = _(this.data).filter(function (element) {
-                    return element[key] !== delId;
-                });
 
             }
         }, this);
@@ -157,10 +168,17 @@ jsHyphen.factory("HyphenDataModel", ['HyphenIndexDb', 'OfflineOnlineService', fu
                 //create
                 if (!OfflineOnlineService.getState() && !preventSync) {
                     record.action = "new";
-                    HyphenIndexDb.addRecordToStore(record, self.modelName, record[key]);
+                    try {
+                        HyphenIndexDb.addRecordToStore(record, self.modelName, record[key]);
+                        record = _.extend(new self.model(record), record);
+                        self.data.push(record);
+                    }catch(e){
+                        $rootScope.$broadcast("offlineActionFailure", e, record);
+                    }
+                }else {
+                    record = _.extend(new self.model(record), record);
+                    self.data.push(record);
                 }
-                record = _.extend(new self.model(record), record);
-                self.data.push(record);
             }
         });
 
