@@ -1,6 +1,6 @@
 {
   "name": "hyphen-js",
-  "version": "0.0.288",
+  "version": "1.0.0",
   "description": "HyphenJs, an Angular module made to simplify data model creation with ability to work in offline mode.",
   "main": "dist/hyphen-js.js",
   "authors": [
