@@ -1,0 +1,25 @@
+{
+  "name": "hyphen-js",
+  "version": "0.0.288",
+  "description": "HyphenJs, an Angular module made to simplify data model creation with ability to work in offline mode.",
+  "main": "dist/hyphen-js.js",
+  "authors": [
+    "Blazej Grzelinski"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "restfull",
+    "rest",
+    "javascript",
+    "datamodel",
+    "model",
+    "generic",
+    "offline",
+    "datalayer",
+    "angular"
+  ],
+  "homepage": "https://github.com/blazej-g/hyphen-js",
+  "moduleType": [
+    "amd"
+  ]
+}
