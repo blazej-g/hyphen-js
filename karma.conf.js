@@ -1,7 +1,7 @@
 // Karma configuration
 // Generated on Sat Nov 28 2015 01:34:02 GMT+0100 (CET)
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -20,19 +20,23 @@ module.exports = function(config) {
       "node_modules/angular-mocks/angular-mocks.js",
       "node_modules/underscore/underscore.js",
 
+      'src/js-hyphen.js',
+      'src/js-hyphen-api.js',
+      'src/js-hyphen-api-call-factory.js',
+      'src/js-hyphen-base-model.js',
+      'src/js-hyphen-cache.js',
+      'src/js-hyphen-data-provider.js',
+      'src/js-hyphen-http.js',
+      'src/js-hyphen-indexed-db.js',
+      'src/js-hyphen-network-status.js',
+      'src/js-hyphen-synchronizer.js',
 
-      "src/js-hyphen.js",
-      "src/js-hyphen-data-model.js",
-      "src/js-hyphen-http.js",
-      "src/js-hyphen-indexed-db.js",
-      "src/js-hyphen-synchronizer.js",
       "test/*.js"
     ],
 
 
     // list of files to exclude
-    exclude: [
-    ],
+    exclude: [],
 
     client: {
       captureConsole: true
@@ -40,8 +44,7 @@ module.exports = function(config) {
 
     // preprocess matching files --reporters dotsbefore serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-    },
+    preprocessors: {},
 
 
     // test results reporter to use

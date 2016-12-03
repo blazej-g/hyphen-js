@@ -14,11 +14,7 @@ module.exports = function (grunt) {
         meta: {
             banner: [
                 '/**',
-                ' * <%= pkg.description %>',
                 ' * @version v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>' +
-                ' * @link <%= pkg.homepage %>',
-                ' * @author <%= pkg.author %>',
-                ' * @license MIT License, http://www.opensource.org/licenses/MIT',
                 ' */'
             ].join('\n')
         },
@@ -30,11 +26,18 @@ module.exports = function (grunt) {
                 banner: '<%= meta.banner %>'
             },
             dist: {
-                src: ['src/js-hyphen.js',
-                    'src/js-hyphen-indexed-db.js',
-                    'src/js-hyphen-data-model.js',
+                src: [
+                    'src/js-hyphen.js',
+                    'src/js-hyphen-api.js',
+                    'src/js-hyphen-api-call-factory.js',
+                    'src/js-hyphen-base-model.js',
+                    'src/js-hyphen-cache.js',
+                    'src/js-hyphen-data-provider.js',
                     'src/js-hyphen-http.js',
-                    'src/js-hyphen-synchronizer.js'],
+                    'src/js-hyphen-indexed-db.js',
+                    'src/js-hyphen-network-status.js',
+                    'src/js-hyphen-synchronizer.js',
+                ],
                 dest: '<%= dirs.dest %>/<%= pkg.name %>.js'
             }
         },

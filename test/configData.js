@@ -1,43 +1,43 @@
-var dataModel = [
-    {
-        syncMethod: {action: "sync", url: "users/sync", method: "put"},
+var dataModel = {
+    "Teams": {
+        model: "Teams",
+        key: "_id",
+        rest: [],
+    },
+    "Users": {
         model: "Users",
         key: "_id",
-        sync:true,
+        embedObjects: {projects: "Projects", teams: "Teams"},
         rest: [
-            {name: "signIn", url: "/users/login", method: "post", processResponse: false, offline:true },
-            {name: "update", url: "/users/update", method: "put", offline:true},
-            {name: "create", url: "/users/create", method: "post", offline:true},
-            {name: "getAll", url: "/users", method: "get", offline:true},
-            {name: "delete", url: "/users/:id", method: "delete", offline:true},
-            {name: "getOne", url: "/users/:id", method: "get", offline:true},
-            {name: "getUserComplexParams", url: "/users/:userId/project/:projectId?name=:firstName&age=:age", method: "get"},
+            {name: "signIn", url: "/users/login", method: "post", processResponse: false},
+            {name: "update", url: "/users/update", method: "put"},
+            {name: "create", url: "/users/create", method: "post"},
+            {name: "getAll", url: "/users", method: "get"},
+            {name: "delete", url: "/users/:id", method: "delete"},
+            {name: "getOne", url: "/users/:id", method: "get"},
+            {
+                name: "getUserComplexParams",
+                url: "/users/:userId/project/:projectId?name=:firstName&age=:age",
+                method: "get"
+            },
             {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get"},
             {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get"},
             {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
-            {
-                name: "getUserProjects",
-                url: "/users/user_projects",
-                method: "get",
-                responseHandler: function (data, hyphenModels) {
-                    var projects = data.projects;
-                    hyphenModels.Projects.add(projects);
-                    delete data.projects;
-                    hyphenModels.Users.add(data);
-                }
-            },
+            {name: "getUserProjects", url: "/users/user_projects", method: "get"},
+            {name: "getUserProjectsTeams", url: "/users/user_projects_teams", method: "get"},
         ],
     },
-    {
+    "Projects": {
         model: "Projects",
         key: "_id",
+        embedObjects: {teams: "Teams"},
         rest: [
             {name: "create", url: "/projects/create", method: "post"},
             {name: "getAll", url: "/projects", method: "get"},
             {name: "removeAll", url: "/projects/remove_all", method: "post", action: "delete"},
         ],
     }
-];
+};
 
 var user = {
     "_id": 1,
@@ -67,70 +67,25 @@ var user3 = {
 var configuration = {
     model: dataModel,
     baseUrl: "",
-    dbVersion: 1,
-    dbName: 'JsHyphenTestDb',
-    requestInterceptor: function (config) {
-        //intercept all request and provide authorization token
-        var token = sessionStorage.getItem("token");
-        config.headers = {Authorization: token};
-        return config;
-    },
-    responseInterceptor: function (data, config) {
-        return data;
-    }
+    //requestInterceptor: function (config) {
+    //    //intercept all request and provide authorization token
+    //    var token = sessionStorage.getItem("token");
+    //    config.headers = {Authorization: token};
+    //    return config;
+    //},
+    //responseInterceptor: function (data, config) {
+    //    return data;
+    //}
 };
 
 jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
 
     var User = function (data) {
-        //console.log(data);
-    }
-
-    User.key = "_id";
+    };
 
     User.prototype.getFullName = function () {
         return this.user_first_name + " " + this.user_last_name;
-    }
-
-    User.indexes =
-    {
-        _id: "Id",
-        user_first_name: "FirstName"
-    }
-
-    User.groups =
-    {
-        memberId: "MemberId"
-    }
-
-    User.sort =
-    {
-        desc: "user_first_name"
-    }
-
-    User.createOffline = function (params, data, dataModel) {
-        data._id = Math.random() * 10000;
-        dataModel.Users.add(data);
-        var d="fdf";
     };
-
-
-    User.deleteOffline = function (params, data, dataModel) {
-        var user = dataModel.Users.getById(params.id);
-        if (user)
-            dataModel.Users.remove(user);
-    };
-
-    User.updateOffline = function (params, data, dataModel) {
-        dataModel.Users.add(data);
-    }
-
-
-    User.new = function (record) {
-        delete record._id;
-        Hyphen.Users.api.create.data = record;
-        return Hyphen.Users.api.create.call()
-    }
 
     return User;
 
@@ -139,20 +94,17 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
 jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
     var Project = function () {
 
-    }
-    Project.key = "_id";
-
-    Project.indexes = {_id: "Id"}
-
-    Project.synchronize = function () {
-        var def = $q.defer();
-        $timeout(function () {
-            def.resolve("data resolvedd");
-        }, 100);
-
-        return def.promise;
-    }
+    };
 
     return Project;
+
+}]);
+
+jsHyphen.factory('Teams', ['$timeout', '$q', function ($timeout, $q) {
+    var Teams = function () {
+
+    };
+
+    return Teams;
 
 }]);

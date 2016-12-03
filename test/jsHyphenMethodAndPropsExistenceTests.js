@@ -10,32 +10,13 @@ describe("Hyphen JS", function () {
         $httpBackend = $injector.get('$httpBackend');
     }));
 
-
-
     it('should have initialize function', inject(function (Hyphen) {
         expect(Hyphen.initialize).toBeDefined(Function);
-    }));
-
-    it('should have switchToOffline function', inject(function (Hyphen) {
-        expect(Hyphen.switchToOffline).toBeDefined(Function);
-    }));
-
-    it('should have switchToOnline function', inject(function (Hyphen) {
-        expect(Hyphen.switchToOnline).toBeDefined(Function);
-    }));
-
-    it('should have getState function', inject(function (Hyphen) {
-        expect(Hyphen.getState).toBeDefined(Function);
     }));
 
     it('should have dispose function', inject(function (Hyphen) {
         expect(Hyphen.dispose).toBeDefined(Function);
     }));
-
-    it('should have initializeDb function', inject(function (Hyphen) {
-        expect(Hyphen.initializeDb).toBeDefined(Function);
-    }));
-
 
     //users
     it('should have defined "Users" entity', inject(function (Hyphen) {
@@ -70,26 +51,17 @@ describe("Hyphen JS", function () {
         expect(Hyphen.Users.api.delete).toBeDefined();
     }));
 
-    it('should be defined Users "dataModel"', inject(function (Hyphen) {
-        expect(Hyphen.Users.dataModel).toBeDefined();
+    it('should be defined Users "provider"', inject(function (Hyphen) {
+        expect(Hyphen.Users.provider).toBeDefined();
     }));
 
-    it('should be defined Users index "Id"', inject(function (Hyphen) {
-        expect(Hyphen.Users.dataModel.getById).toBeDefined();
-    }));
-
-    it('should be defined Users index "Id"', inject(function (Hyphen) {
-        expect(Hyphen.Users.dataModel.getByFirstName).toBeDefined();
+    it('should be defined Where method"', inject(function (Hyphen) {
+        expect(Hyphen.Users.provider.where).toBeDefined();
     }));
 
     it('should be false loading property on Users entity', inject(function (Hyphen) {
-        expect(Hyphen.Users.dataModel.loading).toBeFalsy();
+        expect(Hyphen.Users.provider.loading).toBeFalsy();
     }));
-
-    it('should define method like getGroupByMemberId', inject(function (Hyphen) {
-        expect(Hyphen.Users.dataModel.getGroupByMemberId).toBeDefined();
-    }));
-
 
     //project tests
     it('should have defined "Projects" entity', inject(function (Hyphen) {
@@ -100,12 +72,12 @@ describe("Hyphen JS", function () {
         expect(Hyphen.Projects.api).toBeDefined();
     }));
 
-    it('should have defined "Projects" dataModel', inject(function (Hyphen) {
-        expect(Hyphen.Projects.dataModel).toBeDefined();
+    it('should have defined "Projects" provider', inject(function (Hyphen) {
+        expect(Hyphen.Projects.provider).toBeDefined();
     }));
 
     it('should be false "loading" property on Projects entity', inject(function (Hyphen) {
-        expect(Hyphen.Projects.dataModel.loading).toBeFalsy();
+        expect(Hyphen.Projects.provider.loading).toBeFalsy();
     }));
 
     it('should have defined "create" method on "Projects" entity', inject(function (Hyphen) {
