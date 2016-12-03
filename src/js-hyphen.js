@@ -16,11 +16,9 @@ jsHyphen.provider("Hyphen", [function () {
                     modelConfiguration.name=key;
                     Hyphen[modelConfiguration.name] = {};
                     Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(modelConfiguration);
-                    //Hyphen[modelConfiguration.name].api = new HyphenAPI(Hyphen[modelConfiguration.name].provider, modelConfiguration, globalConfiguration);
                 });
 
                 _(globalConfiguration.model).each(function (modelConfiguration, key, obj) {
-                   // Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(modelConfiguration);
                     modelConfiguration.name=key;
                     Hyphen[modelConfiguration.name].api = new HyphenAPI(Hyphen, modelConfiguration, globalConfiguration);
                 });

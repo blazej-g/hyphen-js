@@ -1,5 +1,9 @@
 /**
- * @version v0.0.294 - 2016-12-03 */var jsHyphen = angular.module('jsHyphen', []);
+ * Hyphen Js - Generic Angular application data layer
+ * @version v0.0.0 - 2016-12-03 * @link 
+ * @author Blazej Grzelinski
+ * @license MIT License, http://www.opensource.org/licenses/MIT
+ */var jsHyphen = angular.module('jsHyphen', []);
 
 jsHyphen.provider("Hyphen", [function () {
     var provider = {};
@@ -17,11 +21,9 @@ jsHyphen.provider("Hyphen", [function () {
                     modelConfiguration.name=key;
                     Hyphen[modelConfiguration.name] = {};
                     Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(modelConfiguration);
-                    //Hyphen[modelConfiguration.name].api = new HyphenAPI(Hyphen[modelConfiguration.name].provider, modelConfiguration, globalConfiguration);
                 });
 
                 _(globalConfiguration.model).each(function (modelConfiguration, key, obj) {
-                   // Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(modelConfiguration);
                     modelConfiguration.name=key;
                     Hyphen[modelConfiguration.name].api = new HyphenAPI(Hyphen, modelConfiguration, globalConfiguration);
                 });
