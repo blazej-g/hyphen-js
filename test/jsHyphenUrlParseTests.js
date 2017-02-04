@@ -11,8 +11,8 @@ describe("Hyphen JS", function () {
     }));
 
     it('should load single user using api call', inject(function (Hyphen) {
-        $httpBackend.expectGET("/users/1").respond(200, user)
-        Hyphen.Users.api.getOne({id: 1});
+        $httpBackend.expectGET("/users/1").respond(200, user);
+        Hyphen.Users.api.getOne({id: 1}).save();
         $httpBackend.flush();
         expect(Hyphen.Users.provider.findOne({_id: 1})._id).toBe(1);
     }));
@@ -24,7 +24,7 @@ describe("Hyphen JS", function () {
     }));
 
     it('should be able to handle dot and question params', inject(function (Hyphen) {
-        $httpBackend.expectGET("/users/1/project/3?age=100").respond(200, user)
+        $httpBackend.expectGET("/users/1/project/3?age=100").respond(200, user);
         Hyphen.Users.api.getUserWithParams({userId: 1, projectId: 3, age: 100});
         $httpBackend.flush();
     }));

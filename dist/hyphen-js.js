@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.0 - 2016-12-03 * @link 
+ * @version v0.0.0 - 2017-02-04 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -18,19 +18,19 @@ jsHyphen.provider("Hyphen", [function () {
                 this.configuration = globalConfiguration;
 
                 _(globalConfiguration.model).each(function (modelConfiguration, key, obj) {
-                    modelConfiguration.name=key;
+                    modelConfiguration.name = key;
                     Hyphen[modelConfiguration.name] = {};
-                    Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(modelConfiguration);
+                    Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(Hyphen, modelConfiguration, globalConfiguration);
                 });
 
                 _(globalConfiguration.model).each(function (modelConfiguration, key, obj) {
-                    modelConfiguration.name=key;
+                    modelConfiguration.name = key;
                     Hyphen[modelConfiguration.name].api = new HyphenAPI(Hyphen, modelConfiguration, globalConfiguration);
                 });
             };
 
             Hyphen.dispose = function () {
-                this.configuration.model.forEach(function (modelConfiguration) {
+                _(this.configuration.model).forEach(function (modelConfiguration) {
                     Hyphen[modelConfiguration.name].provider.clearData();
                 });
                 HyphenCache.clearCache();
@@ -42,12 +42,12 @@ jsHyphen.provider("Hyphen", [function () {
 }]);
 jsHyphen.factory("HyphenAPI", ['ApiCallFactory', '$injector', '$q', function (ApiCallFactory, $injector, $q) {
     // Seems to act like APIService + BaseClassFactory
-    var HyphenAPI = function (_Hyphen, modelConfiguration, globalConfiguration, configuration) {
-        this._Hyphen = _Hyphen;
+    var HyphenAPI = function (Hyphen, modelConfiguration, globalConfiguration) {
+        this.hyphen = Hyphen;
         this.loading = 0;
         this.modelConfiguration = modelConfiguration;
         this.globalConfiguration = globalConfiguration;
-        var selfApi = this;
+        var hyphenApi = this;
 
         _(modelConfiguration.rest).each(function (apiCallConfiguration) {
             var self = this;
@@ -55,24 +55,45 @@ jsHyphen.factory("HyphenAPI", ['ApiCallFactory', '$injector', '$q', function (Ap
 
             this[apiCallConfiguration.name] = function (params, data) {
                 var actionPromise = $q.defer();
+
+                actionPromise.promise.save = function (model, property) {
+                    actionPromise.promise.then(function (response) {
+                        if (!model) {
+                            model = hyphenApi.modelConfiguration.model;
+                        }
+
+                        var data = response.data;
+                        if (property) {
+                            data = response.data[property];
+                        }
+                        Hyphen[hyphenApi.modelConfiguration.name].provider.addData(data, model);
+                    })
+
+                    return actionPromise.promise;
+                };
+
+                actionPromise.promise.delete = function (model, property) {
+                    actionPromise.promise.then(function (response) {
+                        if (!model) {
+                            model = hyphenApi.modelConfiguration.model;
+                        }
+
+                        var data = response.data;
+                        if (property) {
+                            data = response.data[property];
+                        }
+
+                        Hyphen[hyphenApi.modelConfiguration.name].provider.deleteData(data, model);
+                    });
+
+                    return actionPromise.promise;
+                };
+
                 var promise = apiCallFactory.getApiCall(params, data);
 
                 self[apiCallConfiguration.name].loading++;
                 self.loading++;
                 self[apiCallConfiguration.name].loaded = false;
-
-                var interceptor = $injector.has(modelConfiguration.name + "Interceptor") ? $injector.get(modelConfiguration.name + "Interceptor") : null;
-
-                if (interceptor && interceptor[apiCallConfiguration.name + "Post"]) {
-                    interceptor[apiCallConfiguration.name + "Post"](actionPromise.promise, modelConfiguration.name, apiCallConfiguration);
-                } else if (globalConfiguration.responseInterceptor) {
-                    globalConfiguration.responseInterceptor(actionPromise.promise, modelConfiguration.name, apiCallConfiguration);
-                }
-                else {
-                    actionPromise.promise.then(function (response) {
-                        self.saveResult(selfApi._Hyphen, selfApi.modelConfiguration, apiCallConfiguration, response.data);
-                    });
-                }
 
                 promise.then(function (response) {
                     self[apiCallConfiguration.name].loading--;
@@ -90,23 +111,6 @@ jsHyphen.factory("HyphenAPI", ['ApiCallFactory', '$injector', '$q', function (Ap
 
             self[apiCallConfiguration.name].loading = 0;
         }, this);
-    };
-
-    HyphenAPI.prototype.saveResult = function (providers, model, apiCallConfiguration, data) {
-        var self = this;
-        var data = Array.isArray(data) ? data : [data];
-        _(data).each(function (record) {
-            for (var key in model.embedObjects) {
-                var embedModel = model.embedObjects[key];
-                if (record[key]) {
-                    var embedData = Array.isArray(record[key]) ? record[key] : [record[key]];
-                    self.saveResult(providers, self.globalConfiguration.model[embedModel], apiCallConfiguration, embedData);
-                    delete record[key];
-                }
-            }
-            providers[model.name].provider[apiCallConfiguration.method](record);
-        });
-        self._Hyphen[self.modelConfiguration.name].provider.clearIndexes();
     };
 
     return HyphenAPI;
@@ -152,17 +156,6 @@ jsHyphen.factory("ApiCallFactory", ['HyphenPost', 'HyphenGet', 'HyphenPut', 'Hyp
 
     return ApiCallFactory;
 }]);
-jsHyphen.factory("HyphenBaseModel", [function () {
-    var HyphenBaseModel = function (object) {
-        _.extend(this, angular.copy(object));
-    };
-
-    HyphenBaseModel.createModelPrototype = function (modelType) {
-        return Object.create(HyphenBaseModel.prototype);
-    };
-
-    return HyphenBaseModel;
-}]);
 jsHyphen.factory("HyphenCache", [function () {
     var urls = {};
 
@@ -181,8 +174,10 @@ jsHyphen.factory("HyphenCache", [function () {
     return this;
 }]);
 jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($rootScope, $injector) {
-    var HyphenDataProvider = function (modelConfiguration) {
+    var HyphenDataProvider = function (hyphen, modelConfiguration, globalConfiguration) {
         this.modelConfiguration = modelConfiguration;
+        this.Hyphen = hyphen;
+        this.globalConfiguration = globalConfiguration;
 
         this.clearData();
 
@@ -214,7 +209,6 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
 
     HyphenDataProvider.prototype.clearData = function () {
         this.data = [];
-        this.metaData = {};
         this.clearIndexes();
     };
 
@@ -302,7 +296,7 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
         });
     };
 
-    HyphenDataProvider.prototype.put = function (data) {
+    HyphenDataProvider.prototype.save = function (data) {
         var self = this;
         var element = _(self.data).find(function (el) {
             return el[self.modelConfiguration.key] === data[self.modelConfiguration.key];
@@ -320,40 +314,51 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
         }
     };
 
-    HyphenDataProvider.prototype.post = function (data) {
+    HyphenDataProvider.prototype.addData = function (data, modelName) {
         var self = this;
-        var element = _(self.data).find(function (el) {
-            return el[self.modelConfiguration.key] === data[self.modelConfiguration.key];
-        });
-
-        //update
-        if (element) {
-            var newRecord = _.extend(new self.modelClass(data), data);
-            self.data = _([newRecord].concat(self.data)).uniq(false, function (element) {
-                return element[self.modelConfiguration.key];
-            });
+        var model = null;
+        if (!modelName) {
+            model = this.modelConfiguration;
         } else {
-            var record = _.extend(new self.modelClass(data), data);
-            self.data.push(record);
+            model = this.globalConfiguration.model[modelName];
         }
+
+        var data = Array.isArray(data) ? data : [data];
+        _(data).each(function (record) {
+            for (var key in model.embedObjects) {
+                var embedModel = model.embedObjects[key];
+                if (record[key]) {
+                    var embedData = Array.isArray(record[key]) ? record[key] : [record[key]];
+                    self.addData(embedData, embedModel);
+                    delete record[key];
+                }
+            }
+            self.Hyphen[model.name].provider.save(record);
+        });
+        self.Hyphen[model.name].provider.clearIndexes();
     };
 
-    HyphenDataProvider.prototype.get = function (data) {
+    HyphenDataProvider.prototype.deleteData = function (data, modelName) {
         var self = this;
-        var element = _(self.data).find(function (el) {
-            return el[self.modelConfiguration.key] === data[self.modelConfiguration.key];
-        });
-
-        //update
-        if (element) {
-            var newRecord = _.extend(new self.modelClass(data), data);
-            self.data = _([newRecord].concat(self.data)).uniq(false, function (element) {
-                return element[self.modelConfiguration.key];
-            });
+        if (!modelName) {
+            model = this.modelConfiguration;
         } else {
-            var record = _.extend(new self.modelClass(data), data);
-            self.data.push(record);
+            model = this.globalConfiguration.model[modelName];
         }
+
+        var data = Array.isArray(data) ? data : [data];
+        _(data).each(function (record) {
+            for (var key in model.embedObjects) {
+                var embedModel = model.embedObjects[key];
+                if (record[key]) {
+                    var embedData = Array.isArray(record[key]) ? record[key] : [record[key]];
+                    self.deleteData(embedData, embedModel);
+                    delete record[key];
+                }
+            }
+            self.Hyphen[model.name].provider.delete(record);
+        });
+        self.Hyphen[model.name].provider.clearIndexes();
     };
 
     return HyphenDataProvider;

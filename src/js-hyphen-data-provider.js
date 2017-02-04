@@ -1,6 +1,8 @@
 jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($rootScope, $injector) {
-    var HyphenDataProvider = function (modelConfiguration) {
+    var HyphenDataProvider = function (hyphen, modelConfiguration, globalConfiguration) {
         this.modelConfiguration = modelConfiguration;
+        this.Hyphen = hyphen;
+        this.globalConfiguration = globalConfiguration;
 
         this.clearData();
 
@@ -32,7 +34,6 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
 
     HyphenDataProvider.prototype.clearData = function () {
         this.data = [];
-        this.metaData = {};
         this.clearIndexes();
     };
 
@@ -120,7 +121,7 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
         });
     };
 
-    HyphenDataProvider.prototype.put = function (data) {
+    HyphenDataProvider.prototype.save = function (data) {
         var self = this;
         var element = _(self.data).find(function (el) {
             return el[self.modelConfiguration.key] === data[self.modelConfiguration.key];
@@ -138,40 +139,51 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
         }
     };
 
-    HyphenDataProvider.prototype.post = function (data) {
+    HyphenDataProvider.prototype.addData = function (data, modelName) {
         var self = this;
-        var element = _(self.data).find(function (el) {
-            return el[self.modelConfiguration.key] === data[self.modelConfiguration.key];
-        });
-
-        //update
-        if (element) {
-            var newRecord = _.extend(new self.modelClass(data), data);
-            self.data = _([newRecord].concat(self.data)).uniq(false, function (element) {
-                return element[self.modelConfiguration.key];
-            });
+        var model = null;
+        if (!modelName) {
+            model = this.modelConfiguration;
         } else {
-            var record = _.extend(new self.modelClass(data), data);
-            self.data.push(record);
+            model = this.globalConfiguration.model[modelName];
         }
+
+        var data = Array.isArray(data) ? data : [data];
+        _(data).each(function (record) {
+            for (var key in model.embedObjects) {
+                var embedModel = model.embedObjects[key];
+                if (record[key]) {
+                    var embedData = Array.isArray(record[key]) ? record[key] : [record[key]];
+                    self.addData(embedData, embedModel);
+                    delete record[key];
+                }
+            }
+            self.Hyphen[model.name].provider.save(record);
+        });
+        self.Hyphen[model.name].provider.clearIndexes();
     };
 
-    HyphenDataProvider.prototype.get = function (data) {
+    HyphenDataProvider.prototype.deleteData = function (data, modelName) {
         var self = this;
-        var element = _(self.data).find(function (el) {
-            return el[self.modelConfiguration.key] === data[self.modelConfiguration.key];
-        });
-
-        //update
-        if (element) {
-            var newRecord = _.extend(new self.modelClass(data), data);
-            self.data = _([newRecord].concat(self.data)).uniq(false, function (element) {
-                return element[self.modelConfiguration.key];
-            });
+        if (!modelName) {
+            model = this.modelConfiguration;
         } else {
-            var record = _.extend(new self.modelClass(data), data);
-            self.data.push(record);
+            model = this.globalConfiguration.model[modelName];
         }
+
+        var data = Array.isArray(data) ? data : [data];
+        _(data).each(function (record) {
+            for (var key in model.embedObjects) {
+                var embedModel = model.embedObjects[key];
+                if (record[key]) {
+                    var embedData = Array.isArray(record[key]) ? record[key] : [record[key]];
+                    self.deleteData(embedData, embedModel);
+                    delete record[key];
+                }
+            }
+            self.Hyphen[model.name].provider.delete(record);
+        });
+        self.Hyphen[model.name].provider.clearIndexes();
     };
 
     return HyphenDataProvider;

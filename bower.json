@@ -1,6 +1,6 @@
 {
   "name": "hyphen-js",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "HyphenJs, an Angular module made to simplify data model creation.",
   "main": "dist/hyphen-js.js",
   "authors": [

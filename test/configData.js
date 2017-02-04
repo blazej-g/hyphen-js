@@ -2,7 +2,7 @@ var dataModel = {
     "Teams": {
         model: "Teams",
         key: "_id",
-        rest: [],
+        rest: [{name: "getAll", url: "/teams", method: "get"}],
     },
     "Users": {
         model: "Users",

@@ -13,19 +13,19 @@ jsHyphen.provider("Hyphen", [function () {
                 this.configuration = globalConfiguration;
 
                 _(globalConfiguration.model).each(function (modelConfiguration, key, obj) {
-                    modelConfiguration.name=key;
+                    modelConfiguration.name = key;
                     Hyphen[modelConfiguration.name] = {};
-                    Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(modelConfiguration);
+                    Hyphen[modelConfiguration.name].provider = new HyphenDataProvider(Hyphen, modelConfiguration, globalConfiguration);
                 });
 
                 _(globalConfiguration.model).each(function (modelConfiguration, key, obj) {
-                    modelConfiguration.name=key;
+                    modelConfiguration.name = key;
                     Hyphen[modelConfiguration.name].api = new HyphenAPI(Hyphen, modelConfiguration, globalConfiguration);
                 });
             };
 
             Hyphen.dispose = function () {
-                this.configuration.model.forEach(function (modelConfiguration) {
+                _(this.configuration.model).forEach(function (modelConfiguration) {
                     Hyphen[modelConfiguration.name].provider.clearData();
                 });
                 HyphenCache.clearCache();
