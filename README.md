@@ -100,7 +100,7 @@ var dataModel = {
   Hyphen.initialize(configuration);
 ```
 
-### Calling api rest methods
+### Calling api rest methods and binding to data
 
 #### Getting all users
 ```javascript
@@ -115,4 +115,21 @@ var dataModel = {
      
      <!--displaying user full name (getFullName method is defined on user model)-->
      <div>{{Hyphen.Users.provider.findOne({_id: 1}).getFullName()}}</div>
+    
+```
+
+### Updating user with _id=1
+```javascript
+     Hyphen.Users.api.update({_id: 1}, user).save();
+```
+
+### Get users and save them in Users collection
+```javascript
+    Hyphen.Users.api.getUsers().save("Users");
+```
+
+
+### getting all users with name 'Alex'
+```html
+     <div>{{Hyphen.Users.provider.where({'name': 'Alex'})}}</div>
 ```

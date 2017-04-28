@@ -179,7 +179,14 @@ describe("Hyphen JS", function () {
             "_id": 1,
             name: "my team",
             users: [{_id: 4, user_first_name: "Blazej", user_last_name: "grzelinski"},
-                {_id: 6, user_first_name: "Blazej 2", user_last_name: "grzelinski 2"}
+                {
+                    _id: 6, user_first_name: "Blazej 2", user_last_name: "grzelinski 2",
+                    projects: [{_id: 100, name: "Hyphen tests"}, {
+                        _id: 200,
+                        name: "Hyphen projects",
+                        teams: [{_id: 10, name: "testTeam"}]
+                    }]
+                }
             ]
         };
 
