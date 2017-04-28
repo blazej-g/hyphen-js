@@ -9,22 +9,18 @@ var dataModel = {
         key: "_id",
         embedObjects: {projects: "Projects", teams: "Teams"},
         rest: [
-            {name: "signIn", url: "/users/login", method: "post", processResponse: false},
+            {name: "signIn", url: "/users/login", method: "post"},
             {name: "update", url: "/users/update", method: "put"},
             {name: "create", url: "/users/create", method: "post"},
             {name: "getAll", url: "/users", method: "get"},
             {name: "delete", url: "/users/:id", method: "delete"},
             {name: "getOne", url: "/users/:id", method: "get"},
-            {
-                name: "getUserComplexParams",
-                url: "/users/:userId/project/:projectId?name=:firstName&age=:age",
-                method: "get"
-            },
             {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get"},
             {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get"},
-            {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
+            {name: "removeAll", url: "/users/remove_all", method: "post"},
             {name: "getUserProjects", url: "/users/user_projects", method: "get"},
             {name: "getUserProjectsTeams", url: "/users/user_projects_teams", method: "get"},
+            {name: "getUserComplexParams", url: "/users/1/project/3?name=blazej&age=100", method: "get"},
         ],
     },
     "Projects": {
@@ -34,7 +30,7 @@ var dataModel = {
         rest: [
             {name: "create", url: "/projects/create", method: "post"},
             {name: "getAll", url: "/projects", method: "get"},
-            {name: "removeAll", url: "/projects/remove_all", method: "post", action: "delete"},
+            {name: "removeAll", url: "/projects/remove_all", method: "post"},
         ],
     }
 };
@@ -67,15 +63,6 @@ var user3 = {
 var configuration = {
     model: dataModel,
     baseUrl: "",
-    //requestInterceptor: function (config) {
-    //    //intercept all request and provide authorization token
-    //    var token = sessionStorage.getItem("token");
-    //    config.headers = {Authorization: token};
-    //    return config;
-    //},
-    //responseInterceptor: function (data, config) {
-    //    return data;
-    //}
 };
 
 jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
