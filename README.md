@@ -64,9 +64,9 @@ jsHyphen.factory('Teams', [function () {
 ### Data models and configuration
 
 Data model is an object containing defined model, each model has to have:
-    ⋅⋅* model - point the model for the entity
-    ⋅⋅* key
-    ⋅⋅* embedObjects - hyphen js will traverse the data and automatically populate the models
+    1. model - point the model for the entity
+    2. key - obigarory key field
+    3. embedObjects - hyphen js will traverse the data and automatically populate the models
     
     For example for following json which is User entity, it will create one user, two projects and one team
 
