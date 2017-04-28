@@ -33,7 +33,7 @@ var exampleApp = angular.module('example', ['jsHyphen']);
 ### Defining Hyphen models
 
 ```javascript
-jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
+jsHyphen.factory('Users', [function () {
     var User = function (data) {
     };
 
@@ -44,7 +44,15 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
     return User;
 }]);
 
-jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
+jsHyphen.factory('Projects', [function () {
+    var Project = function () {
+
+    };
+
+    return Project;
+}]);
+
+jsHyphen.factory('Teams', [function () {
     var Project = function () {
 
     };
@@ -55,6 +63,27 @@ jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
 
 ### Data models and configuration
 
+Data model is an object containing defined model, each model has to have:
+    - model
+    - key
+    -embedObjects - hyphen js will traverse the data and automatically populate the models
+    
+    For example for following json which is User entity, it will create one user, two projects and one team
+    
+   ```json
+    {
+                "_id": 1,
+                user_email: "test1@email.com",
+                user_first_name: "Blazej",
+                user_last_name: "Grzelinski",
+                projects: [{_id: 100, name: "Hyphen project tests"}, {
+                    _id: 200,
+                    name: "Hyphen projects",
+                    teams: [{_id: 10, name: "testTeam"}]
+                }]
+            };
+    ```
+    
 ```javascript
 var dataModel = {
     "Teams": {
@@ -92,6 +121,7 @@ var dataModel = {
         ],
     }
 };
+
 ```
 
 ### Initializing Hyphen
@@ -129,7 +159,7 @@ var dataModel = {
 ```
 
 
-### getting all users with name 'Alex'
+### Getting all users with name 'Alex'
 ```html
      <div>{{Hyphen.Users.provider.where({'name': 'Alex'})}}</div>
 ```
