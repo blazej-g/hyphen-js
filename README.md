@@ -62,7 +62,7 @@ jsHyphen.factory('Teams', [function () {
 ```
 
 
-###Hyphen rest calls and models configuration
+### Hyphen rest calls and models configuration
 
    ```javascript
 var hyphenConfiguration = {
