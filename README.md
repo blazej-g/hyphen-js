@@ -32,6 +32,29 @@ var exampleApp = angular.module('timeMinder', ['jsHyphen']);
 
 ### Data models and configuration
 
+### Defining Hyphen models
+
+```javascript
+jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
+    var User = function (data) {
+    };
+
+    User.prototype.getFullName = function () {
+        return this.user_first_name + " " + this.user_last_name;
+    };
+
+    return User;
+}]);
+
+jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
+    var Project = function () {
+
+    };
+
+    return Project;
+}]);
+```
+
 ```javascript
 var dataModel = {
     "Teams": {
@@ -76,25 +99,11 @@ var dataModel = {
 ```javascript
   Hyphen.initialize(configuration);
 ```
-### Defining Hyphen models
 
+### Calling api rest methods
+
+#### Getting all users
 ```javascript
-jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
-    var User = function (data) {
-    };
-
-    User.prototype.getFullName = function () {
-        return this.user_first_name + " " + this.user_last_name;
-    };
-
-    return User;
-}]);
-
-jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
-    var Project = function () {
-
-    };
-
-    return Project;
-}]);
+     Hyphen.Users.api.getAll().save();
+     //save methods save the result in data model
 ```
