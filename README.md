@@ -133,9 +133,8 @@ var hyphenConfiguration = {
     model: hyphenConfiguration,
     baseUrl: "",
 });
-
--base model is prefix added to all api calls
 ```
+* baseUrl is prefix added to all api calls
 
 ### Calling api rest methods and binding to data
 
