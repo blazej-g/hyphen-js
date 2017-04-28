@@ -61,32 +61,6 @@ jsHyphen.factory('Teams', [function () {
 }]);
 ```
 
-### Data models and configuration
-
-Data model is an object containing models definition, each model has to have:
-
-    * model - point the model for the entity
-    * key - obigarory key field
-    * embedObjects - hyphen js will traverse the data and automatically populate the models
-    
-    For example for following json which is User entity, it will create one user, two projects and one team
-
-    
-   ```javascript
-    {
-                "_id": 1,
-                user_email: "test1@email.com",
-                user_first_name: "Blazej",
-                user_last_name: "Grzelinski",
-                projects: [{_id: 100, name: "Hyphen project tests"}, {
-                    _id: 200,
-                    name: "Hyphen projects",
-                    teams: [{_id: 10, name: "testTeam"}]
-                }]
-            }
-
-```
-
 
 ###Hyphen rest calls and models configuration
 
@@ -130,11 +104,33 @@ var hyphenConfiguration = {
 
 ```
 
+    * model - point the model for the entity
+    * key - obigarory key field
+    * embedObjects - hyphen js will traverse the data and automatically populate the models
+    
+    For example for following json which is User entity, it will create one user, two projects and one team
+
+    
+   ```javascript
+    {
+                "_id": 1,
+                user_email: "test1@email.com",
+                user_first_name: "Blazej",
+                user_last_name: "Grzelinski",
+                projects: [{_id: 100, name: "Hyphen project tests"}, {
+                    _id: 200,
+                    name: "Hyphen projects",
+                    teams: [{_id: 10, name: "testTeam"}]
+                }]
+            }
+
+```
+
 ### Initializing Hyphen
 
 ```javascript
   Hyphen.initialize({
-    model: dataModel,
+    model: hyphenConfiguration,
     baseUrl: "",
 });
 
