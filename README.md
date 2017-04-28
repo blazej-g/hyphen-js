@@ -85,8 +85,13 @@ Data model is an object containing defined model, each model has to have:
                 }]
             }
 
+```
 
-var dataModel = {
+
+Hyphen rest calls and models configuration
+
+   ```javascript
+var hyphenConfiguration = {
     "Teams": {
         model: "Teams",
         key: "_id",
