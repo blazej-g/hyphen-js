@@ -1,8 +1,8 @@
-#HyphenJs
+# HyphenJs
 
 HyphenJs, an Angular module made to simplify data model creation for Angular app.
 
-###Installation
+### Installation
 If you'd like to use npm, it's as easy as:
 ```html
 npm install hyphen-js --save
@@ -15,22 +15,20 @@ bower install hyphen-js --save
 or download source code with minified version from git hub:
 [source code] (https://github.com/blazejgrzelinski/hyphen-js)
 
-Add HyphenJs script to your html file, usaually it should looks like below (when installed with npm)
+Add HyphenJs script to your html file, usually it should looks like below (when installed with npm)
 
 ```html
 <script src="node_modules/hyphen-js/dist/hyphen-js.js"></script>
 ```
 
 ### Prerequisites
-Hyphen JS require Angular and Underscore.
+Hyphen JS require Angular 1.x and Underscore.
 
 ### Add Hyphen dependency to Angular app
 
 ```javascript
-var exampleApp = angular.module('timeMinder', ['jsHyphen']);
+var exampleApp = angular.module('example', ['jsHyphen']);
 ```
-
-### Data models and configuration
 
 ### Defining Hyphen models
 
@@ -54,6 +52,8 @@ jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
     return Project;
 }]);
 ```
+
+### Data models and configuration
 
 ```javascript
 var dataModel = {
@@ -105,5 +105,14 @@ var dataModel = {
 #### Getting all users
 ```javascript
      Hyphen.Users.api.getAll().save();
-     //save methods save the result in data model
+     //save method saves the result in data model
+```
+
+#### Binding to model data
+```html
+     <!--getting user with id=1-->
+     <div>{{Hyphen.Users.provider.findOne({_id: 1})}}</div>
+     
+     <!--displaying user full name (getFullName method is defined on user model)-->
+     <div>{{Hyphen.Users.provider.findOne({_id: 1}).getFullName()}}</div>
 ```
