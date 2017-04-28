@@ -66,7 +66,6 @@ var configuration = {
 };
 
 jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
-
     var User = function (data) {
     };
 
@@ -75,7 +74,6 @@ jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeou
     };
 
     return User;
-
 }]);
 
 jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
@@ -84,7 +82,6 @@ jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
     };
 
     return Project;
-
 }]);
 
 jsHyphen.factory('Teams', ['$timeout', '$q', function ($timeout, $q) {

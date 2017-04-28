@@ -72,3 +72,29 @@ var dataModel = {
 ```
 
 ### Initializing Hyphen
+
+```javascript
+  Hyphen.initialize(configuration);
+```
+### Defining Hyphen models
+
+```javascript
+jsHyphen.factory('Users', ['Hyphen', '$timeout', '$q', function (Hyphen, $timeout, $q) {
+    var User = function (data) {
+    };
+
+    User.prototype.getFullName = function () {
+        return this.user_first_name + " " + this.user_last_name;
+    };
+
+    return User;
+}]);
+
+jsHyphen.factory('Projects', ['$timeout', '$q', function ($timeout, $q) {
+    var Project = function () {
+
+    };
+
+    return Project;
+}]);
+```
