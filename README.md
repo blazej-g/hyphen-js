@@ -63,7 +63,7 @@ jsHyphen.factory('Teams', [function () {
 
 ### Data models and configuration
 
-Data model is an object containing defined model, each model has to have:
+Data model is an object containing models definition, each model has to have:
 
     * model - point the model for the entity
     * key - obigarory key field
@@ -88,7 +88,7 @@ Data model is an object containing defined model, each model has to have:
 ```
 
 
-Hyphen rest calls and models configuration
+###Hyphen rest calls and models configuration
 
    ```javascript
 var hyphenConfiguration = {
@@ -133,7 +133,12 @@ var hyphenConfiguration = {
 ### Initializing Hyphen
 
 ```javascript
-  Hyphen.initialize(configuration);
+  Hyphen.initialize({
+    model: dataModel,
+    baseUrl: "",
+});
+
+-base model is prefix added to all api calls
 ```
 
 ### Calling api rest methods and binding to data
@@ -169,3 +174,9 @@ var hyphenConfiguration = {
 ```html
      <div>{{Hyphen.Users.provider.where({'name': 'Alex'})}}</div>
 ```
+
+
+For more examples please check test folder.
+
+To start tests please run:
+*karma start
