@@ -24,6 +24,14 @@ Add HyphenJs script to your html file, usaually it should looks like below (when
 ### Prerequisites
 Hyphen JS require Angular and Underscore.
 
+### Add Hyphen dependency to Angular app
+
+```javascript
+var exampleApp = angular.module('timeMinder', ['jsHyphen']);
+```
+
+### Data models and configuration
+
 ```javascript
 var dataModel = {
     "Teams": {
@@ -36,7 +44,7 @@ var dataModel = {
         key: "_id",
         embedObjects: {projects: "Projects", teams: "Teams"},
         rest: [
-            {name: "signIn", url: "/users/login", method: "post", processResponse: false},
+            {name: "signIn", url: "/users/login", method: "post"},
             {name: "update", url: "/users/update", method: "put"},
             {name: "create", url: "/users/create", method: "post"},
             {name: "getAll", url: "/users", method: "get"},
@@ -57,8 +65,10 @@ var dataModel = {
         rest: [
             {name: "create", url: "/projects/create", method: "post"},
             {name: "getAll", url: "/projects", method: "get"},
-            {name: "removeAll", url: "/projects/remove_all", method: "post", action: "delete"},
+            {name: "removeAll", url: "/projects/remove_all", method: "post"},
         ],
     }
 };
 ```
+
+### Initializing Hyphen
