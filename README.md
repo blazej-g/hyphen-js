@@ -53,11 +53,11 @@ jsHyphen.factory('Projects', [function () {
 }]);
 
 jsHyphen.factory('Teams', [function () {
-    var Project = function () {
+    var Teams = function () {
 
     };
 
-    return Project;
+    return Teams;
 }]);
 ```
 
@@ -179,4 +179,6 @@ var hyphenConfiguration = {
 For more examples please check test folder.
 
 To start tests please run:
-*karma start
+* karma start
+
+You can bind to Hyphen "findOne" and "where" as the data are indexed and will not slow down your app.
