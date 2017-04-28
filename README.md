@@ -84,9 +84,8 @@ Data model is an object containing defined model, each model has to have:
                     teams: [{_id: 10, name: "testTeam"}]
                 }]
             }
-    ```
-    
-```javascript
+
+
 var dataModel = {
     "Teams": {
         model: "Teams",
