@@ -24,10 +24,41 @@ Add HyphenJs script to your html file, usaually it should looks like below (when
 ### Prerequisites
 Hyphen JS require Angular and Underscore.
 
-
-###Configuration and setup
-
-####Add HyphenJs to your Angular app as dependency
-```javascript
-var exampleApp = angular.module('exampleApp', ['jsHyphen']);
-```
+'''javascript
+var dataModel = {
+    "Teams": {
+        model: "Teams",
+        key: "_id",
+        rest: [{name: "getAll", url: "/teams", method: "get"}],
+    },
+    "Users": {
+        model: "Users",
+        key: "_id",
+        embedObjects: {projects: "Projects", teams: "Teams"},
+        rest: [
+            {name: "signIn", url: "/users/login", method: "post", processResponse: false},
+            {name: "update", url: "/users/update", method: "put"},
+            {name: "create", url: "/users/create", method: "post"},
+            {name: "getAll", url: "/users", method: "get"},
+            {name: "delete", url: "/users/:id", method: "delete"},
+            {name: "getOne", url: "/users/:id", method: "get"},
+            {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get"},
+            {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get"},
+            {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
+            {name: "getUserProjects", url: "/users/user_projects", method: "get"},
+            {name: "getUserProjectsTeams", url: "/users/user_projects_teams", method: "get"},
+            {name: "getUserComplexParams", url: "/users/1/project/3?name=blazej&age=100", method: "get"},
+        ],
+    },
+    "Projects": {
+        model: "Projects",
+        key: "_id",
+        embedObjects: {teams: "Teams"},
+        rest: [
+            {name: "create", url: "/projects/create", method: "post"},
+            {name: "getAll", url: "/projects", method: "get"},
+            {name: "removeAll", url: "/projects/remove_all", method: "post", action: "delete"},
+        ],
+    }
+};
+'''
