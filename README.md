@@ -84,7 +84,7 @@ var hyphenConfiguration = {
             {name: "getOne", url: "/users/:id", method: "get"},
             {name: "getUserWithParams", url: "/users/:userId/project/:projectId?age=:age", method: "get"},
             {name: "getUserTwoParams", url: "/users/:id/project/:projectId", method: "get"},
-            {name: "removeAll", url: "/users/remove_all", method: "post", action: "delete"},
+            {name: "removeAll", url: "/users/remove_all", method: "post"},
             {name: "getUserProjects", url: "/users/user_projects", method: "get"},
             {name: "getUserProjectsTeams", url: "/users/user_projects_teams", method: "get"},
             {name: "getUserComplexParams", url: "/users/1/project/3?name=blazej&age=100", method: "get"},
