@@ -30,7 +30,7 @@ Hyphen JS require Angular 1.x and Underscore.
 var exampleApp = angular.module('example', ['jsHyphen']);
 ```
 
-### Defining Hyphen models
+### Defining example Hyphen models
 
 ```javascript
 jsHyphen.factory('Users', [function () {
