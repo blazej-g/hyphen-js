@@ -24,7 +24,7 @@ Add HyphenJs script to your html file, usaually it should looks like below (when
 ### Prerequisites
 Hyphen JS require Angular and Underscore.
 
-'''javascript
+```javascript
 var dataModel = {
     "Teams": {
         model: "Teams",
@@ -61,4 +61,4 @@ var dataModel = {
         ],
     }
 };
-'''
+```
