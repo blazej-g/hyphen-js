@@ -105,7 +105,7 @@ var hyphenConfiguration = {
 ```
 
     * model - point the model for the entity
-    * key - obigarory key field
+    * key - key field
     * embedObjects - hyphen js will traverse the data and automatically populate the models
     
     For example for following json which is User entity, it will create one user, two projects and one team
