@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v0.0.0 - 2017-02-04 * @link 
+ * @version v2.0.4 - 2018-01-27 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -174,9 +174,10 @@ jsHyphen.factory("HyphenCache", [function () {
     return this;
 }]);
 jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($rootScope, $injector) {
+    var Hyphen = {};
     var HyphenDataProvider = function (hyphen, modelConfiguration, globalConfiguration) {
         this.modelConfiguration = modelConfiguration;
-        this.Hyphen = hyphen;
+        Hyphen = hyphen;
         this.globalConfiguration = globalConfiguration;
 
         this.clearData();
@@ -333,9 +334,9 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
                     delete record[key];
                 }
             }
-            self.Hyphen[model.name].provider.save(record);
+            Hyphen[model.name].provider.save(record);
         });
-        self.Hyphen[model.name].provider.clearIndexes();
+        Hyphen[model.name].provider.clearIndexes();
     };
 
     HyphenDataProvider.prototype.deleteData = function (data, modelName) {
@@ -356,9 +357,9 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
                     delete record[key];
                 }
             }
-            self.Hyphen[model.name].provider.delete(record);
+            Hyphen[model.name].provider.delete(record);
         });
-        self.Hyphen[model.name].provider.clearIndexes();
+        Hyphen[model.name].provider.clearIndexes();
     };
 
     return HyphenDataProvider;
