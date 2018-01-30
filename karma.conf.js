@@ -27,10 +27,6 @@ module.exports = function (config) {
       'src/js-hyphen-cache.js',
       'src/js-hyphen-data-provider.js',
       'src/js-hyphen-http.js',
-      'src/js-hyphen-indexed-db.js',
-      'src/js-hyphen-network-status.js',
-      'src/js-hyphen-synchronizer.js',
-
       "test/*.js"
     ],
 

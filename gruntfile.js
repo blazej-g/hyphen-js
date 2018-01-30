@@ -38,9 +38,7 @@ module.exports = function (grunt) {
                     'src/js-hyphen-cache.js',
                     'src/js-hyphen-data-provider.js',
                     'src/js-hyphen-http.js',
-                    'src/js-hyphen-indexed-db.js',
-                    'src/js-hyphen-network-status.js',
-                    'src/js-hyphen-synchronizer.js',
+                    'src/es-6.js',
                 ],
                 dest: '<%= dirs.dest %>/<%= pkg.name %>.js'
             }
@@ -94,7 +92,7 @@ module.exports = function (grunt) {
     grunt.registerTask('default', ['bump', 'build']);
 
     // Build task.
-    grunt.registerTask('build', ['karma:build', 'concat', 'uglify', 'zip']);
+    grunt.registerTask('build', ['karma:build', 'concat', 'zip']);
 
     // Provides the "bump" task.
     grunt.registerTask('bump', 'Increment version number', function () {

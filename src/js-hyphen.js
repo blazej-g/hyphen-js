@@ -1,5 +1,5 @@
 var jsHyphen = angular.module('jsHyphen', []);
-
+var HyphenJs = {};
 jsHyphen.provider("Hyphen", [function () {
     var provider = {};
     provider.initialize = function () {
@@ -8,7 +8,7 @@ jsHyphen.provider("Hyphen", [function () {
     provider.$get = ['$rootScope', '$http', '$q', '$injector', '$timeout', 'HyphenDataProvider', 'HyphenAPI', 'HyphenCache',
         function ($rootScope, $http, $q, $injector, $timeout, HyphenDataProvider, HyphenAPI, HyphenCache) {
             var Hyphen = {};
-
+            HyphenJs = Hyphen;
             Hyphen.initialize = function (globalConfiguration) {
                 this.configuration = globalConfiguration;
 
