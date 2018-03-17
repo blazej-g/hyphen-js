@@ -91,6 +91,10 @@ jsHyphen.factory("HyphenFilePost", ['HyphenCallBase', '$http', '$q', function (H
         this.$http = function(config){
             var httpRequest = new XMLHttpRequest();
             httpRequest.open("POST", config.url , true);
+            var self= this;
+            Object.keys(this.config.headers).forEach(function (key) {
+                httpRequest.setRequestHeader(key, self.config.headers[key]);
+            });
 
             var httpPromise = $q.defer();
             httpRequest.upload.addEventListener("progress", function (oEvent) {

@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v2.0.4 - 2018-01-29 * @link 
+ * @version v2.0.6 - 2018-03-17 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -457,6 +457,10 @@ jsHyphen.factory("HyphenFilePost", ['HyphenCallBase', '$http', '$q', function (H
         this.$http = function(config){
             var httpRequest = new XMLHttpRequest();
             httpRequest.open("POST", config.url , true);
+            var self= this;
+            Object.keys(this.config.headers).forEach(function (key) {
+                httpRequest.setRequestHeader(key, self.config.headers[key]);
+            });
 
             var httpPromise = $q.defer();
             httpRequest.upload.addEventListener("progress", function (oEvent) {
