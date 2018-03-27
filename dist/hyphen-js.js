@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v2.0.6 - 2018-03-17 * @link 
+ * @version v2.0.7 - 2018-03-27 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -341,6 +341,7 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
 
     HyphenDataProvider.prototype.deleteData = function (data, modelName) {
         var self = this;
+        var model = null;
         if (!modelName) {
             model = this.modelConfiguration;
         } else {
