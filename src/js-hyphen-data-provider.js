@@ -166,6 +166,7 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
 
     HyphenDataProvider.prototype.deleteData = function (data, modelName) {
         var self = this;
+        var model = null;
         if (!modelName) {
             model = this.modelConfiguration;
         } else {
