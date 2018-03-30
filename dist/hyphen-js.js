@@ -1,6 +1,6 @@
 /**
  * Hyphen Js - Generic Angular application data layer
- * @version v2.0.7 - 2018-03-27 * @link 
+ * @version v2.0.8 - 2018-03-30 * @link 
  * @author Blazej Grzelinski
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */var jsHyphen = angular.module('jsHyphen', []);
@@ -101,6 +101,7 @@ jsHyphen.factory("HyphenAPI", ['ApiCallFactory', '$injector', '$q', function (Ap
                     self[apiCallConfiguration.name].loaded = true;
                     actionPromise.resolve(response);
                 }, function (reason) {
+                    self.loading--;
                     actionPromise.reject(reason);
                 }, function (event) {
                     actionPromise.notify(event);

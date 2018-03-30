@@ -59,6 +59,7 @@ jsHyphen.factory("HyphenAPI", ['ApiCallFactory', '$injector', '$q', function (Ap
                     self[apiCallConfiguration.name].loaded = true;
                     actionPromise.resolve(response);
                 }, function (reason) {
+                    self.loading--;
                     actionPromise.reject(reason);
                 }, function (event) {
                     actionPromise.notify(event);
