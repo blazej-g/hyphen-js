@@ -60,6 +60,7 @@ jsHyphen.factory("HyphenAPI", ['ApiCallFactory', '$injector', '$q', function (Ap
                     actionPromise.resolve(response);
                 }, function (reason) {
                     self.loading--;
+                    self[apiCallConfiguration.name].loading--;
                     actionPromise.reject(reason);
                 }, function (event) {
                     actionPromise.notify(event);

@@ -58,30 +58,47 @@ jsHyphen.factory("HyphenDataProvider", ['$rootScope', '$injector', function ($ro
         return this.groupedData[key][id] ? this.groupedData[key][id] : [];
     };
 
-    HyphenDataProvider.prototype.where = function (properties) {
+    HyphenDataProvider.prototype.where = function (properties, caseSensitive) {
         var concatenatedKeys = '';
         var concatenatedValues = '';
 
         for (var key in properties) {
             concatenatedKeys += key + '|';
-            concatenatedValues += properties[key] + '|';
+            if(caseSensitive) {
+                concatenatedValues += properties[key]+ '|';
+            }else{
+                if(properties[key]) {
+                    concatenatedValues += properties[key].toString().toLowerCase() + '|';
+                }else{
+                    concatenatedValues += properties[key] + '|';
+                }
+            }
         }
 
         if (!this.groupedData[concatenatedKeys]) {
             this.groupedData[concatenatedKeys] = _(this.getData()).groupBy(function (data) {
                 var dataConcatenatedValues = '';
                 for (var key in properties) {
-                    dataConcatenatedValues += data[key] + '|';
+                    if(caseSensitive) {
+                        dataConcatenatedValues += data[key] + '|';
+                    }else{
+                        if(data[key]){
+                            dataConcatenatedValues += data[key].toString().toLowerCase() + '|';
+                        }else{
+                            dataConcatenatedValues += data[key] + '|';
+                        }
+                    }
                 }
                 return dataConcatenatedValues;
             });
         }
 
+       // console.log(this.groupedData[concatenatedKeys][concatenatedValues]);
         return this.groupedData[concatenatedKeys][concatenatedValues] ? this.groupedData[concatenatedKeys][concatenatedValues] : [];
     };
 
-    HyphenDataProvider.prototype.findOne = function (properties) {
-        var result = this.where(properties);
+    HyphenDataProvider.prototype.findOne = function (properties, caseSensitive) {
+        var result = this.where(properties, caseSensitive);
         return result.length > 0 ? result[0] : null;
     }
 

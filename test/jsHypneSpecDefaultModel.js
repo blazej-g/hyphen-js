@@ -21,7 +21,7 @@ describe("Hyphen JS", function () {
         expect(Hyphen.Users.provider.getData().length).toBe(users.length);
     }));
 
-    it('should update User name using api call', inject(function (Hyphen) {
+    it('should update User using api call', inject(function (Hyphen) {
         user.user_first_name = "BlazejNewName";
         $httpBackend.expectPUT("/users/update").respond(200, user);
         Hyphen.Users.api.update({_id: 1}, user).save();
@@ -29,7 +29,16 @@ describe("Hyphen JS", function () {
         expect(Hyphen.Users.provider.findOne({_id: 1}).user_first_name).toBe("BlazejNewName");
     }));
 
-    it('should create User using api call', inject(function (Hyphen) {
+    it('should create User using api call and not find user by name with case sensitive', inject(function (Hyphen) {
+        user.user_first_name = "Blazej";
+        $httpBackend.expectPOST("/users/create").respond(200, user);
+        Hyphen.Users.api.create(null, user).save();
+        $httpBackend.flush();
+        //console.log(Hyphen.Users.provider);
+        expect(Hyphen.Users.provider.findOne({'user_first_name': 'blazej'}, true)).toBe(null);
+    }));
+
+    it('should create User using api call and find by ', inject(function (Hyphen) {
         $httpBackend.expectPOST("/users/create").respond(200, user);
         Hyphen.Users.api.create(null, user).save();
         $httpBackend.flush();
